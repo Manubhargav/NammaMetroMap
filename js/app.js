@@ -3,12 +3,12 @@
 
 // --> Model - contains all the essential data (Location data and other global declarations)
 var locations = [
-	{ name: 'Baiyappanahalli metro station', location: {lat: 12.9907, lng: 77.6525}, address: 'Sadanandanagar, Bennigana Halli'},
-	{ name: 'Halasuru metro station', location: {lat: 12.9764, lng: 77.6267}, address: 'Old Madras Road, Gupta Layout, Halasuru'},
-	{ name: 'Indiranagar metro station', location: {lat: 12.9783, lng: 77.6388}, address: 'Chinmaya Mission Hospital Rd, Binnamangala, Stage 1'},
-	{ name: 'Majestic metro station', location: {lat: 12.9757, lng: 77.5728}, address: ' Kempegowda, Majestic'},
-	{ name: 'Swami Vivekananda Road metro station', location: {lat: 12.9859, lng: 77.6449}, address: 'Swamy Vivekananda Rd, New Baiyyappanahalli Extension'},
-	{ name: 'Vidhana Soudha metro station', location: {lat: 12.9798, lng: 77.5927}, address: 'Ambedkar Veedhi, Sampangi Rama Nagar'}	
+	{ name: 'Baiyappanahalli metro station', location: {lat: 12.9907, lng: 77.6525}, address: ' - Sadanandanagar, Bennigana Halli'},
+	{ name: 'Halasuru metro station', location: {lat: 12.9764, lng: 77.6267}, address: ' - Old Madras Road, Gupta Layout, Halasuru'},
+	{ name: 'Indiranagar metro station', location: {lat: 12.9783, lng: 77.6388}, address: ' - Chinmaya Mission Hospital Rd, Binnamangala, Stage 1'},
+	{ name: 'Majestic metro station', location: {lat: 12.9757, lng: 77.5728}, address: ' - Kempegowda, Majestic'},
+	{ name: 'Swami Vivekananda Road metro station', location: {lat: 12.9859, lng: 77.6449}, address: ' - Swamy Vivekananda Rd, New Baiyyappanahalli Extension'},
+	{ name: 'Vidhana Soudha metro station', location: {lat: 12.9798, lng: 77.5927}, address: ' - Ambedkar Veedhi, Sampangi Rama Nagar'}	
 ];
 var numberOfLocations = locations.length;
 var map;
@@ -66,7 +66,7 @@ function populateInfoWindow(marker, infowindow) {
 			var link = response[3];
 			if (infowindow.marker !== marker) {
 				infowindow.marker = marker;
-				infowindow.setContent('<li><a href="' + link +'">'+ marker.title +'</a></li>');
+				infowindow.setContent('<strong>' + marker.title + '</strong>' + '<em>' + marker.address + '</em>' + '<div>' + content + '</div>' + '<li><sub><a href="' + link +'">'+ 'Related Wiki' +'</a></sub></li>');
 				infowindow.open(map, marker);
 				infowindow.addListener('closeclick', function() {
 					infowindow.marker = null;

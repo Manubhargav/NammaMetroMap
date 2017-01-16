@@ -20,8 +20,7 @@
 		</div>
 		<input type="text" class="filter" data-bind="textInput: query" placeholder="Filter Stations">
 		<ul data-bind="foreach: filterResults">
-			<li><span data-bind="text: name, click: $parent.displayInfo"></span>
-			</li>				
+			<li data-bind="text: name, click: $parent.displayInfo"></li>
 		</ul>			
 	</div>
 	<!-- Knockout JavaSciprt library -->
