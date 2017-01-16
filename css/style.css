@@ -12,7 +12,7 @@ html, body {
     z-index: 1;
     top: 0;
     left: 0;
-    background-color: #1CE2DC;
+    background-color: #673AB7;
     overflow-x: hidden;
     transition: 0.5s;
     padding-top: 50px;
@@ -36,16 +36,16 @@ html, body {
 .close-icon{
 	float: right;
 }
+ul{
+	padding-left: 5px;
+}
 li {
 	list-style: none;
-	color:#1CE2DC;
 	height: 35px;
 	width: 100%;
-	padding-top: 5px;
 	font-size: 15px;
 	border: 1px solid monnoroch;
 }
 li:hover {
-	background-color: #808080;
 	cursor: pointer;
 }

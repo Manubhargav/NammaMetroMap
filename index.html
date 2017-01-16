@@ -20,7 +20,7 @@
 		</div>
 		<input type="text" class="filter" data-bind="textInput: query" placeholder="Filter Stations">
 		<ul data-bind="foreach: filterResults">
-			<li><a href="#" data-bind="text: name, click: $parent.displayInfoWindow"></a>
+			<li><span data-bind="text: name, click: $parent.displayInfo"></span>
 			</li>				
 		</ul>			
 	</div>
