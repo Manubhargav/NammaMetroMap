@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bengaluru Metro Map</title>
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+<body>
+	<!-- Whole page Google Map (with Locations of each item)-->
+	<div id="map"></div>
+	<!-- Hamburger menu that opens up the Sidebar-->
+	<img src="img/ic_open.png" class='menu-icon' width="48" height="48" onclick="openview()" style="cursor:pointer">
+	<!-- Sidebar showing Heading, Filter box and List of items-->
+	<div id="sidebar">
+		<div class="heading">
+			Bengaluru Metro Map
+            <img src="img/ic_close.png" width="48" height="48" class="close-icon" onclick="closeview()" style="cursor:pointer"> 
+		</div>
+		<input type="text" class="filter" data-bind="textInput: query" placeholder="Filter Stations">
+		<ul data-bind="foreach: filterResults">
+			<li><a href="#" data-bind="text: name, click: $parent.displayInfoWindow"></a>
+			</li>				
+		</ul>			
+	</div>
+	<!-- Knockout JavaSciprt library -->
+	<script src="js/knockout-3.4.1.js"></script>
+	<!-- jQuery JavaScript libray -->
+	<script src="js/jquery-3.1.1.min.js"></script>
+	<!-- Custom JavaScript for App functionality -->
+	<script src="js/app.js"></script>
+	<!-- Call to Google Maps API-->
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0wVDCbibcy0nZmWCrUuCk3SCGl4_I-pc&callback=initMap" onerror="MapError()" ></script>
+</body>
+</html>
