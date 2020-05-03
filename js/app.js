@@ -55,7 +55,7 @@ function AnimateMarker (marker) {
 // Function to Create the Infowindows that contain additional infrmation taken from 3rd party API (MediaWiki API used here)
 function populateInfoWindow(marker, infowindow) {
 	var wikiRequestTimeout = setTimeout(function(){ infowindow.setContent("Sorry, For some reason Wikipedia Information cannot be loaded. Please try later"); infowindow.open(map, marker);},1000);
-	var wikipediaURL = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title + '&format=json&callback=wikiCallback';
+	var wikipediaURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title + '&format=json&callback=wikiCallback';
 	$.ajax({
 		url: wikipediaURL,
 		dataType: "jsonp",
