@@ -68,6 +68,9 @@ $(document).ready(function() {
 
     // Activating Knockout
     ko.applyBindings(new myViewModel());
+
+    // Open sidebar by default on page landing
+    openview();
 });
 
 function initMapFeatures() {
