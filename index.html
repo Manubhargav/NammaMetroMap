@@ -42,7 +42,7 @@
                 </svg>
             </div>
 		    <ul data-bind="foreach: filterResults">
-			    <li data-bind="text: name, click: $parent.displayInfo"></li>
+			    <li data-bind="text: name, click: $parent.displayInfo, event: { mouseover: $parent.hoverStation, mouseout: $parent.hoverStationOut }, style: { borderLeftColor: $parent.lineColors[lines[0]] || '#334155' }"></li>
 		    </ul>
         </div>
         
@@ -50,6 +50,19 @@
             Built by <a href="https://manubhargav.github.io" target="_blank" rel="noopener noreferrer">Manu Bhargav</a>
         </div>
 	</div>
+	<!-- Hidden SVG for custom linear gradients (diagonal 2 to 8 o'clock split for interchange stations) -->
+	<svg style="width:0; height:0; position:absolute;" aria-hidden="true">
+		<defs>
+			<linearGradient id="purple-green-gradient" x1="0" y1="0" x2="1" y2="1">
+				<stop offset="50%" stop-color="#ba68c8" />
+				<stop offset="50%" stop-color="#4CAF50" />
+			</linearGradient>
+			<linearGradient id="green-yellow-gradient" x1="0" y1="0" x2="1" y2="1">
+				<stop offset="50%" stop-color="#4CAF50" />
+				<stop offset="50%" stop-color="#ffff00" />
+			</linearGradient>
+		</defs>
+	</svg>
 	<!-- Knockout JavaSciprt library -->
 	<script src="js/knockout-3.4.1.js"></script>
 	<!-- jQuery JavaScript libray -->
