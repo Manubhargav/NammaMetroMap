@@ -2,6 +2,15 @@
 var map;
 var markers = [];
 var defaultCenter = [12.9716, 77.5946];
+
+// CARTO Basemaps API keys (manage at https://dashboard.basemaps.carto.com).
+// Client-side tile keys are public by design: the production key is restricted
+// to the host manubhargav.github.io (Referer) so it cannot be used elsewhere.
+// CARTO requires a SEPARATE key for localhost (a key listing localhost cannot
+// also list public hosts). Paste one into CARTO_KEY_LOCAL for clean local dev;
+// without it, local pages fall back to unkeyed (watermarked) tiles, not 403s.
+var CARTO_KEY = 'cb1_5c4v_1_6e0ee0f67bbbe6bd8bfe8a7a';
+var CARTO_KEY_LOCAL = 'cb1_5c4v_2_82fe5641d67b6e873c971dae';
 var myViewModelInstance; // Global reference for tour trigger
 
 // Assign locations from external file or default to empty
@@ -46,8 +55,14 @@ $(document).ready(function () {
     // Add Zoom control to bottom right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // CartoDB Positron Tiles for a cleaner, modern look
-    var minimalLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    // CartoDB Positron Tiles for a cleaner, modern look.
+    // Use the localhost key when running locally (the production key is
+    // Referer-locked to manubhargav.github.io and 403s on localhost).
+    var isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+    var activeCartoKey = isLocal ? CARTO_KEY_LOCAL : CARTO_KEY;
+    var cartoTileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' +
+        (activeCartoKey ? '?key=' + encodeURIComponent(activeCartoKey) : '');
+    var minimalLayer = L.tileLayer(cartoTileUrl, {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors © CARTO'
     });
