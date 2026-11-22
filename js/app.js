@@ -115,8 +115,9 @@ $(document).ready(function () {
     // Start onboarding tour on initial page load
     setTimeout(startOnboardingTour, 600);
 
-    // Open sidebar by default on page landing
-    openview();
+    // Open sidebar by default on larger screens; phones/tablets (<= 768px)
+    // land on the map with the sidebar closed (responsive overlay + backdrop).
+    if (window.innerWidth > 768) openview();
 });
 
 function initMapFeatures() {
@@ -299,16 +300,13 @@ function populateInfoWindow(marker, loc) {
 }
 
 function openview() {
-    var sidebarWidth = "400px";
-    document.getElementById("sidebar").style.width = sidebarWidth;
-    if (window.innerWidth > 600) {
-        document.getElementById("map").style.marginLeft = sidebarWidth;
-    }
+    document.body.classList.add('sidebar-open');
+    if (map) setTimeout(function () { map.invalidateSize(); }, 400);
 }
 
 function closeview() {
-    document.getElementById("sidebar").style.width = "0";
-    document.getElementById("map").style.marginLeft = "0";
+    document.body.classList.remove('sidebar-open');
+    if (map) setTimeout(function () { map.invalidateSize(); }, 400);
 }
 
 // --> ViewModel
@@ -373,7 +371,7 @@ var myViewModel = function () {
         if (place.marker) {
             populateInfoWindow(place.marker, place);
         }
-        if (window.innerWidth < 600) closeview(); // auto close sidebar on mobile
+        if (window.innerWidth <= 768) closeview(); // auto close sidebar on phones/tablets
     };
 
     self.filterResults = ko.computed(function () {
