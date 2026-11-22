@@ -119,6 +119,25 @@ $(document).ready(function () {
 
     L.control.layers(baseMaps, null, { position: 'bottomright' }).addTo(map);
 
+    // Basemap failure fallback: repeated tile errors switch to keyless Streets
+    // (covers 127.0.0.1 where the localhost-only CARTO key is rejected) and
+    // surface a toast instead of failing silently.
+    var tileErrorCount = 0;
+    function onBasemapTileError() {
+        tileErrorCount++;
+        if (tileErrorCount !== 3) return;
+        if (map.hasLayer(minimalLayer)) {
+            map.removeLayer(minimalLayer);
+            map.addLayer(standardLayer);
+            showMapToast('CARTO tiles unavailable. Switched to Streets.');
+        } else {
+            showMapToast('Basemap tiles unavailable. Station list and search still work.');
+        }
+    }
+    minimalLayer.on('tileerror', onBasemapTileError);
+    standardLayer.on('tileerror', onBasemapTileError);
+    satelliteLayer.on('tileerror', onBasemapTileError);
+
     markersGroup.addTo(map);
     polylinesGroup.addTo(map);
 
@@ -495,6 +514,17 @@ function populateInfoWindow(marker, loc) {
             closeOnClick: false
         }).openPopup();
     loadWikiIntoPopup(marker, loc);
+}
+
+// Basemap toast notification
+function showMapToast(message) {
+    var toast = document.getElementById('map-toast');
+    document.getElementById('map-toast-text').textContent = message;
+    toast.style.display = 'flex';
+}
+
+function hideMapToast() {
+    document.getElementById('map-toast').style.display = 'none';
 }
 
 function openview() {

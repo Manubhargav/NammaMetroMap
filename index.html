@@ -6,7 +6,15 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e293b'/%3E%3Cpath d='M20 42 L32 22 L44 42' stroke='%23f8fafc' stroke-width='3' fill='none'/%3E%3Ccircle cx='20' cy='42' r='6' fill='%23ba68c8'/%3E%3Ccircle cx='32' cy='22' r='6' fill='%234CAF50'/%3E%3Ccircle cx='44' cy='42' r='6' fill='%23ffff00'/%3E%3C/svg%3E">
+    <meta name="description" content="Interactive map of Bengaluru's Namma Metro: all 83 operational stations across the Purple, Green and Yellow lines, with station search and Wikipedia summaries.">
+    <meta property="og:title" content="Namma Metro Map: Bengaluru Metro, interactive">
+    <meta property="og:description" content="All 83 operational Namma Metro stations on one interactive map: Purple, Green and Yellow lines, station search and Wikipedia summaries.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://manubhargav.github.io/NammaMetroMap/">
+    <meta property="og:image" content="https://manubhargav.github.io/NammaMetroMap/assets/og.png">
+    <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 	<!-- Hamburger menu that opens up the Sidebar-->
@@ -65,6 +73,11 @@
 	<!-- Whole page Leaflet Map (with Locations of each item). Placed after the
 	     sidebar in DOM order so keyboard focus reaches sidebar controls first. -->
 	<main id="map"></main>
+	<!-- Basemap failure / offline notification -->
+	<div id="map-toast" role="status" style="display:none">
+		<span id="map-toast-text"></span>
+		<button type="button" id="map-toast-close" aria-label="Dismiss notification" onclick="hideMapToast()">&times;</button>
+	</div>
 	<!-- Hidden SVG for custom linear gradients (diagonal 2 to 8 o'clock split for interchange stations) -->
 	<svg style="width:0; height:0; position:absolute;" aria-hidden="true">
 		<defs>
@@ -84,7 +97,7 @@
 	<script src="js/jquery-3.1.1.min.js"></script>
 	<!-- Custom JavaScript for App functionality -->
 	<script src="js/locations.js"></script>
-	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
 	<script src="js/app.js"></script>
 </body>
 </html>

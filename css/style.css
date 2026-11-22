@@ -359,6 +359,36 @@ li {
     padding-top: 4px;
 }
 
+/* Basemap failure toast */
+#map-toast {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2500;
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 10px 14px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    align-items: center;
+    gap: 12px;
+    max-width: min(90vw, 420px);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+#map-toast-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    flex: none;
+}
+
 /* Station popup content */
 .station-popup strong {
     font-size: 14px;
@@ -443,4 +473,18 @@ li {
     animation: marker-bounce 0.8s ease-out;
     transform-origin: center;
     transform-box: fill-box;
+}
+
+/* Respect reduced-motion preferences (last in file so these rules win) */
+@media (prefers-reduced-motion: reduce) {
+    #map,
+    #sidebar,
+    .station-row,
+    .leaflet-popup {
+        transition: none;
+    }
+
+    .bounce-animation {
+        animation: none;
+    }
 }
