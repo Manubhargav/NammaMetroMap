@@ -146,6 +146,13 @@ $(document).ready(function () {
     // land on the map with the sidebar closed (responsive overlay + backdrop).
     if (window.innerWidth > 768) openview();
 
+    // Keep clicks inside popups from reaching the map: otherwise Leaflet's
+    // closePopupOnClick closes the popup when its Retry/Copy buttons are used.
+    map.on('popupopen', function (e) {
+        var el = e.popup.getElement();
+        if (el) L.DomEvent.disableClickPropagation(el);
+    });
+
     // Tab list keyboard navigation (Left/Right arrows, roving tabindex)
     document.querySelector('.tabs').addEventListener('keydown', function (event) {
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -356,42 +363,138 @@ function fitToResults() {
     map.setView(center, targetZoom);
 }
 
+// Station popups: safe HTML building, validated Wikipedia content, retry on failure
+var wikiRequestToken = 0;
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+
+function trimToSentence(text, maxLen) {
+    if (text.length <= maxLen) return text;
+    var slice = text.slice(0, maxLen);
+    var lastStop = Math.max(slice.lastIndexOf('. '), slice.lastIndexOf('.\n'));
+    if (lastStop >= 80) return slice.slice(0, lastStop + 1);
+    var lastSpace = slice.lastIndexOf(' ');
+    return slice.slice(0, lastSpace > 0 ? lastSpace : maxLen) + '…';
+}
+
+function popupHeaderHtml(loc) {
+    var chips = loc.lines.map(function (line) {
+        var textColor = line === 'Yellow' ? '#333' : '#fff';
+        return '<span class="line-chip" style="background:' + lineColors[line] + ';color:' + textColor + '">' +
+            escapeHtml(line) + '</span>';
+    }).join('');
+    var interchange = loc.lines.length > 1 ? '<span class="interchange-badge">Interchange</span>' : '';
+    return '<strong>' + escapeHtml(loc.name) + '</strong><div class="popup-chips">' + chips + interchange + '</div>';
+}
+
+function setPopupBody(marker, loc, bodyHtml) {
+    marker.setPopupContent('<div class="station-popup">' + popupHeaderHtml(loc) +
+        '<div class="popup-body">' + bodyHtml + '</div></div>');
+    if (marker.isPopupOpen() && marker.getPopup()) marker.getPopup().update();
+}
+
+function bindPopupRetry(marker, loc) {
+    setTimeout(function () {
+        var popup = marker.getPopup();
+        var el = popup && popup.getElement();
+        var btn = el && el.querySelector('.popup-retry');
+        if (btn) {
+            btn.addEventListener('click', function () {
+                setPopupBody(marker, loc, 'Loading info…');
+                loadWikiIntoPopup(marker, loc);
+            });
+        }
+    }, 0);
+}
+
+// Accept only articles that are plausibly about THIS station in Bengaluru:
+// never the generic network article, never an unrelated search hit (e.g. the
+// Dallas "Trinity Railway Express"). Token match ignores spaces/punctuation so
+// "Indiranagar" matches the article "Indira Nagar metro station (Bengaluru)".
+function isStationArticle(title, extract, loc) {
+    var t = title.toLowerCase();
+    if (t === 'namma metro' || t === 'bengaluru metro' || t.indexOf('list of namma metro') === 0) return false;
+    if (t.indexOf('metro') === -1 && t.indexOf('station') === -1 && t.indexOf('railway') === -1) return false;
+    var compactTitle = t.replace(/[^a-z0-9]/g, '');
+    var tokens = loc.name.toLowerCase().replace(/[.,()]/g, '').split(/\s+/).filter(function (w) { return w.length >= 4; });
+    var nameMatches = tokens.some(function (w) { return compactTitle.indexOf(w) > -1; });
+    if (!nameMatches) return false;
+    var contextText = (t + ' ' + String(extract || '').slice(0, 600).toLowerCase());
+    return contextText.indexOf('namma') > -1 || contextText.indexOf('bengaluru') > -1 || contextText.indexOf('bangalore') > -1;
+}
+
+function fetchStationWiki(loc, onDone) {
+    var attempts = [
+        loc.name + ' metro station, Bangalore',
+        '"' + loc.name + '" metro station'
+    ];
+    function attempt(idx) {
+        // Several rank-ordered candidates per attempt: Wikipedia's top hit is
+        // often the network or neighbourhood article, the station article is next.
+        var url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' +
+            encodeURIComponent(attempts[idx]) + '&gsrlimit=4&prop=extracts&exintro&explaintext&format=json&origin=*';
+        $.ajax({ url: url, dataType: 'json', timeout: 8000 })
+            .done(function (response) {
+                var pages = response.query && response.query.pages;
+                var candidates = pages ? Object.keys(pages).map(function (k) { return pages[k]; })
+                    .filter(function (p) { return p && p.extract; })
+                    .sort(function (a, b) { return (a.index || 0) - (b.index || 0); }) : [];
+                var match = null;
+                for (var i = 0; i < candidates.length; i++) {
+                    if (isStationArticle(candidates[i].title, candidates[i].extract, loc)) { match = candidates[i]; break; }
+                }
+                if (match) {
+                    onDone({ status: 'ok', title: match.title, extract: match.extract });
+                } else if (idx + 1 < attempts.length) {
+                    attempt(idx + 1);
+                } else {
+                    onDone({ status: 'none' });
+                }
+            })
+            .fail(function () { onDone({ status: 'error' }); });
+    }
+    attempt(0);
+}
+
+function loadWikiIntoPopup(marker, loc) {
+    var token = ++wikiRequestToken;
+    fetchStationWiki(loc, function (result) {
+        if (token !== wikiRequestToken) return; // a newer station request superseded this one
+        if (!marker.isPopupOpen()) return;      // user moved on
+        if (result.status === 'ok') {
+            var text = trimToSentence(result.extract, 300);
+            var link = 'https://en.wikipedia.org/wiki/' + encodeURIComponent(result.title.replace(/ /g, '_'));
+            setPopupBody(marker, loc,
+                '<p class="popup-extract">' + escapeHtml(text) + '</p>' +
+                '<a class="popup-wiki-link" href="' + link + '" target="_blank" rel="noopener noreferrer">Read on Wikipedia</a>');
+        } else if (result.status === 'none') {
+            setPopupBody(marker, loc,
+                '<p class="popup-extract">No station article found on Wikipedia.</p>' +
+                '<a class="popup-wiki-link" href="https://en.wikipedia.org/w/index.php?search=' +
+                encodeURIComponent(loc.name + ' metro station') + '" target="_blank" rel="noopener noreferrer">Search Wikipedia</a>');
+        } else {
+            setPopupBody(marker, loc,
+                '<p class="popup-error">Wikipedia information could not be loaded. Check your connection and try again.</p>' +
+                '<button type="button" class="popup-retry">Retry</button>');
+            bindPopupRetry(marker, loc);
+        }
+    });
+}
+
 // Function to Create the Infowindows that contain additional information
 function populateInfoWindow(marker, loc) {
     if (marker.isPopupOpen()) return;
-
-    var popupContent = '<div><strong>' + loc.name + '</strong></div><em>Station Lines: ' + loc.lines.join(", ") + '</em><div>Loading info...</div>';
-    marker.bindPopup(popupContent).openPopup();
-
-    var searchTerm = loc.name + ' metro station, Bangalore';
-    var wikipediaURL = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(searchTerm) + '&gsrlimit=1&prop=extracts&exintro&explaintext&format=json&origin=*';
-
-    $.ajax({
-        url: wikipediaURL,
-        dataType: "json",
-        success: function (response) {
-            var pages = response.query && response.query.pages;
-            var content = "No detailed Wikipedia summary available for this station.";
-            var finalTitle = searchTerm.replace(/ /g, "_");
-            if (pages) {
-                var pageId = Object.keys(pages)[0];
-                if (pageId != "-1" && pages[pageId].extract) {
-                    content = pages[pageId].extract.substring(0, 300) + '...';
-                    finalTitle = pages[pageId].title.replace(/ /g, "_");
-                }
-            }
-            var link = "https://en.wikipedia.org/wiki/" + encodeURIComponent(finalTitle);
-
-            var newContent = '<strong>' + loc.name + '</strong><br><em>Lines: ' + loc.lines.join(", ") + '</em><br><p style="margin:8px 0; font-size:13px;">' + content + '</p><a href="' + link + '" target="_blank">Related Wiki</a>';
-            marker.setPopupContent(newContent);
-            if (marker.isPopupOpen() && marker.getPopup()) {
-                marker.getPopup().update();
-            }
-        },
-        error: function () {
-            marker.setPopupContent('<strong>' + loc.name + '</strong><br>Sorry, Wikipedia Information could not be loaded.');
-        }
-    });
+    marker.bindPopup('<div class="station-popup">' + popupHeaderHtml(loc) +
+        '<div class="popup-body">Loading info…</div></div>', {
+            // A map click (including clicks bubbling from popup buttons) must not
+            // dismiss the popup mid-request. Close via the X, Esc, or another station.
+            closeOnClick: false
+        }).openPopup();
+    loadWikiIntoPopup(marker, loc);
 }
 
 function openview() {

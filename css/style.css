@@ -359,6 +359,64 @@ li {
     padding-top: 4px;
 }
 
+/* Station popup content */
+.station-popup strong {
+    font-size: 14px;
+}
+
+.popup-chips {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin: 6px 0 4px;
+}
+
+.line-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.interchange-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.popup-extract {
+    margin: 8px 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.popup-error {
+    color: #b91c1c;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 8px 0;
+}
+
+.popup-retry {
+    background: #1e293b;
+    color: #f8fafc;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    min-height: 36px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.popup-retry:hover {
+    background: #334155;
+}
+
 /* Subtle physical double-bounce animation for SVG station markers */
 @keyframes marker-bounce {
     0% {
