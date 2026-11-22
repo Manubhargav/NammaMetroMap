@@ -1,3 +1,5 @@
+# SUPERSEDED by tools/build_locations.py (offline build from committed raw data).
+# Kept for reference only; its keyword-matching dropped valid stations.
 import requests
 import json
 

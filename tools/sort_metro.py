@@ -1,3 +1,5 @@
+# SUPERSEDED by tools/build_locations.py (offline build from committed raw data).
+# Kept for reference only.
 import json
 
 with open("stations_data.json", "r") as f:

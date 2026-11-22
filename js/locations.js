@@ -88,825 +88,1006 @@ var metroRoutes = {
     "Infosys Foundation Konappana Agrahara",
     "Huskur Road",
     "Biocon Hebbagodi",
-    "Bommasandra",
     "Delta Electronics Bommasandra"
   ]
 };
 var metroStations = [
   {
-    "name": "Manjunathanagara",
-    "location": {
-      "lat": 13.0500898,
-      "lng": 77.4944461
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Jayadeva Hospital",
-    "location": {
-      "lat": 12.916731,
-      "lng": 77.5999663
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
     "name": "Whitefield (Kadugodi)",
     "location": {
-      "lat": 12.9957428,
-      "lng": 77.7579489
+      "lat": 12.99519,
+      "lng": 77.7578215
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ವೈಟ್‌ಫೀಲ್ಡ್ (ಕಾಡುಗೋಡಿ)"
   },
   {
     "name": "Hopefarm Channasandra",
     "location": {
-      "lat": 12.9873426,
-      "lng": 77.7538033
+      "lat": 12.9872074,
+      "lng": 77.7538642
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಹೋಪ್ ಫಾರ್ಮ್ ಚನ್ನಸಂದ್ರ"
+  },
+  {
+    "name": "Kadugodi Tree Park",
+    "location": {
+      "lat": 12.9857936,
+      "lng": 77.7465715
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ಕಾಡುಗೋಡಿ ಟ್ರೀ ಪಾರ್ಕ್"
   },
   {
     "name": "Pattandur Agrahara",
     "location": {
-      "lat": 12.9876393,
-      "lng": 77.7377718
+      "lat": 12.9875935,
+      "lng": 77.7372451
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಪಟ್ಟಂದೂರು ಅಗ್ರಹಾರ"
   },
   {
     "name": "Sri Sathya Sai Hospital",
     "location": {
-      "lat": 12.9811949,
-      "lng": 77.7275361
+      "lat": 12.9807354,
+      "lng": 77.7274963
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಶ್ರೀ ಸತ್ಯ ಸಾಯಿ ಆಸ್ಪತ್ರೆ"
   },
   {
     "name": "Nallurahalli",
     "location": {
-      "lat": 12.9766408,
-      "lng": 77.7248845
+      "lat": 12.9766126,
+      "lng": 77.7243495
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ನಲ್ಲೂರಹಳ್ಳಿ"
   },
   {
     "name": "Kundalahalli",
     "location": {
-      "lat": 12.977594,
-      "lng": 77.7155586
+      "lat": 12.9776292,
+      "lng": 77.715061
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಕುಂದಲಹಳ್ಳಿ"
   },
   {
     "name": "Seetharampalya",
     "location": {
-      "lat": 12.9808558,
-      "lng": 77.7087854
+      "lat": 12.9813697,
+      "lng": 77.7086129
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಸೀತಾರಾಮ ಪಾಳ್ಯ"
   },
   {
     "name": "Hoodi",
     "location": {
-      "lat": 12.9888029,
-      "lng": 77.711326
+      "lat": 12.9891327,
+      "lng": 77.7118453
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಹೂಡಿ"
   },
   {
     "name": "Garudacharpalya",
     "location": {
-      "lat": 12.9934505,
-      "lng": 77.7036768
+      "lat": 12.9935165,
+      "lng": 77.7032966
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಗರುಡಾಚಾರ್ ಪಾಳ್ಯ"
   },
   {
     "name": "Singayyanapalya",
     "location": {
-      "lat": 12.9965445,
-      "lng": 77.6927176
+      "lat": 12.9966967,
+      "lng": 77.6921457
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಸಿಂಗಯ್ಯನಪಾಳ್ಯ"
   },
   {
     "name": "Krishnarajapura",
     "location": {
-      "lat": 12.9999024,
-      "lng": 77.6776703
+      "lat": 12.9998836,
+      "lng": 77.6778421
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಕೃಷ್ಣರಾಜಪುರ (ಕೆ.ಆರ್.ಪುರ)"
   },
   {
     "name": "Benniganahalli",
     "location": {
-      "lat": 12.9965158,
-      "lng": 77.6684619
+      "lat": 12.996496,
+      "lng": 77.6684788
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
-  },
-  {
-    "name": "Beratena Agrahara",
-    "location": {
-      "lat": 12.8638665,
-      "lng": 77.6578624
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Hosa Road",
-    "location": {
-      "lat": 12.8707491,
-      "lng": 77.652447
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Singasandra",
-    "location": {
-      "lat": 12.8808178,
-      "lng": 77.6448456
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Kudlu Gate",
-    "location": {
-      "lat": 12.8899259,
-      "lng": 77.6392156
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Hongasandra",
-    "location": {
-      "lat": 12.9016952,
-      "lng": 77.6319861
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Bommanahalli",
-    "location": {
-      "lat": 12.9106157,
-      "lng": 77.6264782
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Central Silk Board",
-    "location": {
-      "lat": 12.9165816,
-      "lng": 77.620567
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "BTM Layout",
-    "location": {
-      "lat": 12.9165878,
-      "lng": 77.6081182
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Ragigudda",
-    "location": {
-      "lat": 12.9170807,
-      "lng": 77.5883015
-    },
-    "lines": [
-      "Yellow"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Dasarahalli",
-    "location": {
-      "lat": 13.0432607,
-      "lng": 77.5125535
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Jalahalli",
-    "location": {
-      "lat": 13.0394104,
-      "lng": 77.5197351
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Srirampura",
-    "location": {
-      "lat": 12.9965253,
-      "lng": 77.5631963
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಬೆನ್ನಿಗಾನಹಳ್ಳಿ"
   },
   {
     "name": "Baiyappanahalli",
     "location": {
-      "lat": 12.9907594,
-      "lng": 77.6523612
+      "lat": 12.9906745,
+      "lng": 77.652392
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಬೈಯಪ್ಪನಹಳ್ಳಿ"
   },
   {
     "name": "Swami Vivekananda Road",
     "location": {
-      "lat": 12.9859306,
-      "lng": 77.644897
+      "lat": 12.9859128,
+      "lng": 77.6449072
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಸ್ವಾಮಿ ವಿವೇಕಾನಂದ ರಸ್ತೆ"
   },
   {
     "name": "Indiranagar",
     "location": {
-      "lat": 12.9783325,
-      "lng": 77.6386612
+      "lat": 12.9783079,
+      "lng": 77.6386592
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಇಂದಿರಾನಗರ"
   },
   {
     "name": "Halasuru",
     "location": {
-      "lat": 12.9764992,
-      "lng": 77.626686
+      "lat": 12.9764915,
+      "lng": 77.626705
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಹಲಸೂರು"
   },
   {
     "name": "Trinity",
     "location": {
-      "lat": 12.9730218,
-      "lng": 77.6170205
+      "lat": 12.9729953,
+      "lng": 77.617013
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಟ್ರಿನಿಟಿ"
   },
   {
     "name": "Mahatma Gandhi Road",
     "location": {
-      "lat": 12.9755264,
-      "lng": 77.6067902
+      "lat": 12.9756285,
+      "lng": 77.6062979
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಮಹಾತ್ಮ ಗಾಂಧಿ ರಸ್ತೆ"
   },
   {
     "name": "Cubbon Park",
     "location": {
-      "lat": 12.9809575,
-      "lng": 77.5975756
+      "lat": 12.9808954,
+      "lng": 77.597562
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಕಬ್ಬನ್ ಪಾರ್ಕ್"
   },
   {
     "name": "Dr. B. R. Ambedkar Station, Vidhana Soudha",
     "location": {
-      "lat": 12.9787419,
-      "lng": 77.5916385
+      "lat": 12.9779727,
+      "lng": 77.5911088
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ವಿಧಾನ ಸೌಧ"
   },
   {
     "name": "Sir M. Visvesvaraya Stn., Central College",
     "location": {
-      "lat": 12.9745197,
-      "lng": 77.58422
+      "lat": 12.9745014,
+      "lng": 77.5842326
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ವಿಶ್ವೇಶ್ವರಯ್ಯ"
   },
   {
     "name": "Nadaprabhu Kempegowda Station, Majestic",
     "location": {
-      "lat": 12.9757079,
-      "lng": 77.5728757
+      "lat": 12.9756704,
+      "lng": 77.5728057
     },
     "lines": [
       "Purple",
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಕೆಂಪೇಗೌಡ"
   },
   {
     "name": "Krantivira Sangolli Rayanna Railway Station",
     "location": {
-      "lat": 12.9758768,
-      "lng": 77.5653767
+      "lat": 12.9758581,
+      "lng": 77.5653792
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ನಗರ ರೈಲು ನಿಲ್ದಾಣ"
   },
   {
     "name": "Magadi Road",
     "location": {
-      "lat": 12.975632,
-      "lng": 77.5553523
+      "lat": 12.975608,
+      "lng": 77.5553564
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಮಾಗಡಿ ರಸ್ತೆ"
   },
   {
     "name": "Sri Balagangadharanatha Swamiji Station, Hosahalli",
     "location": {
-      "lat": 12.9742933,
-      "lng": 77.5456215
+      "lat": 12.9741737,
+      "lng": 77.5456189
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಶ್ರೀ ಬಾಲಗಂಗಾಧರನಾಥ ಮೆಟ್ರೋ"
   },
   {
     "name": "Vijayanagar",
     "location": {
-      "lat": 12.9709559,
-      "lng": 77.5374044
+      "lat": 12.9709391,
+      "lng": 77.5374285
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ವಿಜಯನಗರ"
   },
   {
     "name": "Attiguppe",
     "location": {
-      "lat": 12.9618931,
-      "lng": 77.5335788
+      "lat": 12.9618581,
+      "lng": 77.5335932
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಅತ್ತಿಗುಪ್ಪೆ ಮೆಟ್ರೋ"
   },
   {
     "name": "Deepanjali Nagar",
     "location": {
-      "lat": 12.9520578,
-      "lng": 77.5370122
+      "lat": 12.9520466,
+      "lng": 77.5370399
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ದೀಪಾಂಜಲಿ ನಗರ"
   },
   {
     "name": "Mysore Road",
     "location": {
-      "lat": 12.9467183,
-      "lng": 77.5301588
+      "lat": 12.9466619,
+      "lng": 77.5300896
     },
     "lines": [
       "Purple"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಮೈಸೂರು ರಸ್ತೆ"
   },
   {
-    "name": "Mantri Square Sampige Road",
+    "name": "Pantharapalya - Nayandahalli",
     "location": {
-      "lat": 12.9904629,
-      "lng": 77.5707293
+      "lat": 12.9416608,
+      "lng": 77.525127
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ಪಂತರಪಾಳ್ಯ - ನಾಯಂಡಹಳ್ಳಿ"
+  },
+  {
+    "name": "Rajarajeshwari Nagar",
+    "location": {
+      "lat": 12.9366362,
+      "lng": 77.5196666
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ರಾಜರಾಜೇಶ್ವರಿ ನಗರ"
+  },
+  {
+    "name": "Jnanabharathi",
+    "location": {
+      "lat": 12.935401,
+      "lng": 77.5121817
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ಜ್ಞಾನ ಭಾರತಿ"
+  },
+  {
+    "name": "Pattanagere",
+    "location": {
+      "lat": 12.9242909,
+      "lng": 77.4983002
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ಪಟ್ಟಣಗೆರೆ"
+  },
+  {
+    "name": "Kengeri Bus Terminal",
+    "location": {
+      "lat": 12.9147641,
+      "lng": 77.4877755
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ಕೆಂಗೇರಿ ಬಸ್ ಟರ್ಮಿನಲ್"
+  },
+  {
+    "name": "Kengeri",
+    "location": {
+      "lat": 12.9079612,
+      "lng": 77.4765361
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ಕೆಂಗೇರಿ"
+  },
+  {
+    "name": "Challaghatta",
+    "location": {
+      "lat": 12.897289,
+      "lng": 77.4612476
+    },
+    "lines": [
+      "Purple"
+    ],
+    "address": "",
+    "nameKn": "ಚಲ್ಲಘಟ್ಟ"
+  },
+  {
+    "name": "Madavara",
+    "location": {
+      "lat": 13.0574359,
+      "lng": 77.4728077
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಮದವರ"
   },
   {
-    "name": "Mahakavi Kuvempu Road",
+    "name": "Chikkabidarakallu",
     "location": {
-      "lat": 12.9985297,
-      "lng": 77.5568986
+      "lat": 13.0523847,
+      "lng": 77.4879224
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಚಿಕ್ಕಬಿದರಕಲ್ಲು"
   },
   {
-    "name": "Rajajinagar",
+    "name": "Manjunathanagara",
     "location": {
-      "lat": 13.0005247,
-      "lng": 77.5496568
+      "lat": 13.0501121,
+      "lng": 77.4944527
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಮಂಜುನಾಥನಗರ"
   },
   {
-    "name": "Mahalakshmi",
+    "name": "Nagasandra",
     "location": {
-      "lat": 13.0080475,
-      "lng": 77.5488066
+      "lat": 13.0479782,
+      "lng": 77.5001473
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ನಾಗಸಂದ್ರ"
   },
   {
-    "name": "Sandal Soap Factory",
+    "name": "Dasarahalli",
     "location": {
-      "lat": 13.0146544,
-      "lng": 77.5539839
+      "lat": 13.0432956,
+      "lng": 77.5125628
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ದಾಸರಹಳ್ಳಿ"
   },
   {
-    "name": "Peenya",
+    "name": "Jalahalli",
     "location": {
-      "lat": 13.0330189,
-      "lng": 77.533201
+      "lat": 13.0394442,
+      "lng": 77.5197626
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಜಾಲಹಳ್ಳಿ"
   },
   {
     "name": "Peenya Industry",
     "location": {
-      "lat": 13.0363176,
-      "lng": 77.5254924
+      "lat": 13.0363428,
+      "lng": 77.525528
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಪೀಣ್ಯ ಕೈಗಾರಿಕ"
   },
   {
-    "name": "Yelachenahalli",
+    "name": "Peenya",
     "location": {
-      "lat": 12.8960498,
-      "lng": 77.5701194
+      "lat": 13.0330515,
+      "lng": 77.5332233
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಪೀಣ್ಯ"
   },
   {
-    "name": "Jaya Prakash Nagar",
+    "name": "Goraguntepalya",
     "location": {
-      "lat": 12.9074747,
-      "lng": 77.5731279
+      "lat": 13.0282471,
+      "lng": 77.5411923
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಗೊರಗುಂಟೆಪಾಳ್ಯ ಮೆಟ್ರೋ ನಿಲ್ದಾಣ"
   },
   {
-    "name": "Banashankari",
+    "name": "Yeshwanthpur",
     "location": {
-      "lat": 12.9152208,
-      "lng": 77.573598
+      "lat": 13.0233685,
+      "lng": 77.549748
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಯಶ್ವಂತಪುರ"
   },
   {
-    "name": "Rashtreeya Vidyalaya Road",
+    "name": "Sandal Soap Factory",
     "location": {
-      "lat": 12.9215807,
-      "lng": 77.5802015
+      "lat": 13.0147177,
+      "lng": 77.5540284
     },
     "lines": [
-      "Green",
-      "Yellow"
+      "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಸಾಂಡಲ್ ಸೋಪ್ ಕಾರ್ಖಾನೆ"
+  },
+  {
+    "name": "Mahalakshmi",
+    "location": {
+      "lat": 13.0080714,
+      "lng": 77.5488245
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ಮಹಾಲಕ್ಷ್ಮಿ"
+  },
+  {
+    "name": "Rajajinagar",
+    "location": {
+      "lat": 13.0005359,
+      "lng": 77.5496996
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ರಾಜಾಜಿನಗರ"
+  },
+  {
+    "name": "Mahakavi Kuvempu Road",
+    "location": {
+      "lat": 12.9985238,
+      "lng": 77.5568794
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ಮಹಾಕವಿ ಕುವೆಂಪು ರಸ್ತೆ"
+  },
+  {
+    "name": "Srirampura",
+    "location": {
+      "lat": 12.9965408,
+      "lng": 77.5633115
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ಶ್ರೀರಾಮಪುರ"
+  },
+  {
+    "name": "Mantri Square Sampige Road",
+    "location": {
+      "lat": 12.9904754,
+      "lng": 77.5707615
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ಮಂತ್ರಿ ಸ್ಕ್ವೇರ್ ಸಂಪಿಗೆ ರಸ್ತೆ"
+  },
+  {
+    "name": "Chickpete",
+    "location": {
+      "lat": 12.966924,
+      "lng": 77.5745737
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ಚಿಕ್ಕಪೇಟೆ"
+  },
+  {
+    "name": "Krishna Rajendra Market",
+    "location": {
+      "lat": 12.9608898,
+      "lng": 77.5746822
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ಕೃಷ್ಣರಾಜೇಂದ್ರ ಮಾರುಕಟ್ಟೆ"
+  },
+  {
+    "name": "National College",
+    "location": {
+      "lat": 12.9505258,
+      "lng": 77.573712
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ರಾಷ್ಟ್ರೀಯ ಕಾಲೇಜು"
+  },
+  {
+    "name": "Lalbagh",
+    "location": {
+      "lat": 12.9465345,
+      "lng": 77.5800377
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ಲಾಲ್ ಬಾಗ್"
+  },
+  {
+    "name": "South End Circle",
+    "location": {
+      "lat": 12.938262,
+      "lng": 77.5800772
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ತಿ.ನಂ.ಶ್ರೀ ವೃತ್ತ"
   },
   {
     "name": "Jayanagar",
     "location": {
       "lat": 12.9295069,
-      "lng": 77.5801439
+      "lng": 77.5801653
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಜಯನಗರ"
   },
   {
-    "name": "South End Circle",
+    "name": "Rashtreeya Vidyalaya Road",
     "location": {
-      "lat": 12.9382573,
-      "lng": 77.5800556
+      "lat": 12.9209581,
+      "lng": 77.5802928
+    },
+    "lines": [
+      "Green",
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ರಾಷ್ಟ್ರೀಯ ವಿದ್ಯಾಲಯ ರಸ್ತೆ"
+  },
+  {
+    "name": "Banashankari",
+    "location": {
+      "lat": 12.9152186,
+      "lng": 77.5736205
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಬನಶಂಕರಿ"
   },
   {
-    "name": "Lalbagh",
+    "name": "Jaya Prakash Nagar",
     "location": {
-      "lat": 12.9465265,
-      "lng": 77.580016
+      "lat": 12.9074812,
+      "lng": 77.5731495
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಜಯಪ್ರಕಾಶ ನಾರಾಯಣ ನಗರ"
   },
   {
-    "name": "National College",
+    "name": "Yelachenahalli",
     "location": {
-      "lat": 12.9505266,
-      "lng": 77.5736898
+      "lat": 12.8960361,
+      "lng": 77.57014
     },
     "lines": [
       "Green"
     ],
-    "address": ""
-  },
-  {
-    "name": "Krishna Rajendra Market",
-    "location": {
-      "lat": 12.9608788,
-      "lng": 77.5746578
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Chickpete",
-    "location": {
-      "lat": 12.9668974,
-      "lng": 77.5745566
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Jnanabharathi",
-    "location": {
-      "lat": 12.9354357,
-      "lng": 77.5124063
-    },
-    "lines": [
-      "Purple"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Pantharapalya - Nayandahalli",
-    "location": {
-      "lat": 12.9416715,
-      "lng": 77.5251166
-    },
-    "lines": [
-      "Purple"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Kengeri Bus Terminal",
-    "location": {
-      "lat": 12.914689,
-      "lng": 77.4878557
-    },
-    "lines": [
-      "Purple"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Kengeri",
-    "location": {
-      "lat": 12.9079105,
-      "lng": 77.4765784
-    },
-    "lines": [
-      "Purple"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Rajarajeshwari Nagar",
-    "location": {
-      "lat": 12.9365996,
-      "lng": 77.5196788
-    },
-    "lines": [
-      "Purple"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Pattanagere",
-    "location": {
-      "lat": 12.9242505,
-      "lng": 77.4983509
-    },
-    "lines": [
-      "Purple"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Silk Institute",
-    "location": {
-      "lat": 12.8617298,
-      "lng": 77.5299545
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Thalaghattapura",
-    "location": {
-      "lat": 12.8714097,
-      "lng": 77.5383958
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Vajarahalli",
-    "location": {
-      "lat": 12.8774369,
-      "lng": 77.5447414
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
-  },
-  {
-    "name": "Doddakallasandra",
-    "location": {
-      "lat": 12.8846435,
-      "lng": 77.5527546
-    },
-    "lines": [
-      "Green"
-    ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಪುಟ್ಟೇನಹಳ್ಳಿ"
   },
   {
     "name": "Konanakunte Cross",
     "location": {
-      "lat": 12.8889671,
-      "lng": 77.5626665
+      "lat": 12.8889432,
+      "lng": 77.5627011
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ಕೋಣನಕುಂಟೆ ಕ್ರಾಸ್"
   },
   {
-    "name": "Nagasandra",
+    "name": "Doddakallasandra",
     "location": {
-      "lat": 13.0479536,
-      "lng": 77.5001422
+      "lat": 12.8846245,
+      "lng": 77.5527796
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ದೊಡ್ಡಕಲ್ಲಸಂದ್ರ"
   },
   {
-    "name": "Yeshwanthpur",
+    "name": "Vajarahalli",
     "location": {
-      "lat": 13.0232678,
-      "lng": 77.5498751
+      "lat": 12.8775221,
+      "lng": 77.5448072
     },
     "lines": [
       "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ವಾಜರಹಳ್ಳಿ"
   },
   {
-    "name": "Kadugodi Tree Park",
+    "name": "Thalaghattapura",
     "location": {
-      "lat": 12.9856503,
-      "lng": 77.7470121
+      "lat": 12.8713916,
+      "lng": 77.538419
     },
     "lines": [
-      "Purple"
+      "Green"
     ],
-    "address": ""
+    "address": "",
+    "nameKn": "ತಲಘಟ್ಟಪುರ"
+  },
+  {
+    "name": "Silk Institute",
+    "location": {
+      "lat": 12.8616662,
+      "lng": 77.5299532
+    },
+    "lines": [
+      "Green"
+    ],
+    "address": "",
+    "nameKn": "ರೇಷ್ಮೆ ಸಂಸ್ಥೆ"
+  },
+  {
+    "name": "Ragigudda",
+    "location": {
+      "lat": 12.9170892,
+      "lng": 77.588698
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ರಾಗಿಗುಡ್ಡ"
+  },
+  {
+    "name": "Jayadeva Hospital",
+    "location": {
+      "lat": 12.9167643,
+      "lng": 77.6004425
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಜಯದೇವ ಆಸ್ಪತ್ರೆ"
+  },
+  {
+    "name": "BTM Layout",
+    "location": {
+      "lat": 12.916598,
+      "lng": 77.6086222
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಬಿಟಿಎಂ ಬಡಾವಣೆ"
+  },
+  {
+    "name": "Central Silk Board",
+    "location": {
+      "lat": 12.9167339,
+      "lng": 77.6210257
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಸೆಂಟ್ರಲ್ ಸಿಲ್ಕ ಬೋರ್ಡ್"
+  },
+  {
+    "name": "Bommanahalli",
+    "location": {
+      "lat": 12.910304,
+      "lng": 77.6267043
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಬೊಮ್ಮನಹಳ್ಳಿ"
+  },
+  {
+    "name": "Hongasandra",
+    "location": {
+      "lat": 12.9013317,
+      "lng": 77.6322415
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಹೊಂಗಸಂದ್ರ"
+  },
+  {
+    "name": "Kudlu Gate",
+    "location": {
+      "lat": 12.8895614,
+      "lng": 77.63947
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಕುಡ್ಲು ಗೇಟ್"
+  },
+  {
+    "name": "Singasandra",
+    "location": {
+      "lat": 12.8804315,
+      "lng": 77.6451067
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಸಿಂಗಸಂದ್ರ"
+  },
+  {
+    "name": "Hosa Road",
+    "location": {
+      "lat": 12.8703997,
+      "lng": 77.6527461
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಹೊಸ ರಸ್ತೆ"
+  },
+  {
+    "name": "Beratena Agrahara",
+    "location": {
+      "lat": 12.8635659,
+      "lng": 77.6581956
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಬೆರಟೇನ ಅಗ್ರಹಾರ"
+  },
+  {
+    "name": "Electronic City",
+    "location": {
+      "lat": 12.8562795,
+      "lng": 77.6637352
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಎಲೆಕ್ಟ್ರಾನಿಕ್ ಸಿಟಿ"
+  },
+  {
+    "name": "Infosys Foundation Konappana Agrahara",
+    "location": {
+      "lat": 12.8460892,
+      "lng": 77.6714519
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಇನ್ಫೋಸಿಸ್ ಫೌಂಡೇಶನ್ ಕೊನಪ್ಪನ ಅಗ್ರಹಾರ"
+  },
+  {
+    "name": "Huskur Road",
+    "location": {
+      "lat": 12.8387166,
+      "lng": 77.6777338
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಹುಸ್ಕೂರು ರಸ್ತೆ"
+  },
+  {
+    "name": "Biocon Hebbagodi",
+    "location": {
+      "lat": 12.8285866,
+      "lng": 77.6815497
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಬಯೋಕಾನ್ ಹೆಬ್ಬಗೋಡಿ"
+  },
+  {
+    "name": "Delta Electronics Bommasandra",
+    "location": {
+      "lat": 12.8190878,
+      "lng": 77.688657
+    },
+    "lines": [
+      "Yellow"
+    ],
+    "address": "",
+    "nameKn": "ಡೆಲ್ಟಾ ಎಲೆಕ್ಟ್ರಾನಿಕ್ಸ್ ಬೊಮ್ಮಸಂದ್ರ"
   }
 ];
