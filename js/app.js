@@ -284,6 +284,7 @@ function initMapFeatures() {
         }).addTo(markersGroup);
 
         marker.title = loc.name;
+        marker.stationLoc = loc;
         // Custom popup setup
         function onMarkerClick(e) {
             endOnboardingTour(); // Clicking ends onboarding tour
@@ -292,22 +293,7 @@ function initMapFeatures() {
         marker.on('click', onMarkerClick);
 
         // Setup premium custom tooltip (autoClose: false allows multiple edge tooltips in tour)
-        var lineNames = loc.lines.join(", ");
-        var indicatorHtml = '';
-        loc.lines.forEach(function (line) {
-            var col = lineColors[line] || '#fff';
-            indicatorHtml += `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:${col}; margin-right:4px;"></span>`;
-        });
-
-        var tooltipContent = `
-            <div class="tooltip-title">${loc.name}</div>
-            <div style="display:flex; align-items:center; margin-bottom:4px; font-size:11px; color:#cbd5e1;">
-                ${indicatorHtml} <span style="margin-left:2px;">${lineNames} Line${loc.lines.length > 1 ? 's' : ''}</span>
-            </div>
-            <div class="tooltip-hint">Click station for details</div>
-        `;
-
-        marker.bindTooltip(tooltipContent, {
+        marker.bindTooltip(buildTooltipContent(loc), {
             // 'auto' flips left/right so endpoint tooltips never clip at map edges
             direction: 'auto',
             className: 'station-tooltip',
@@ -445,6 +431,59 @@ function fitToResults() {
     map.setView(center, targetZoom);
 }
 
+// Kannada / English display helpers (nameKn sourced from OSM name:kn, 83/83 coverage)
+function displayPrimary(loc) {
+    return myViewModelInstance && myViewModelInstance.kannada() && loc.nameKn ? loc.nameKn : loc.name;
+}
+
+function buildTooltipContent(loc) {
+    var lineNames = loc.lines.join(", ");
+    var indicatorHtml = '';
+    loc.lines.forEach(function (line) {
+        var col = lineColors[line] || '#fff';
+        indicatorHtml += `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:${col}; margin-right:4px;"></span>`;
+    });
+    var secondary = myViewModelInstance && myViewModelInstance.kannada() && loc.nameKn ?
+        `<div class="tooltip-sub">${loc.name}</div>` : '';
+    return `
+        <div class="tooltip-title">${displayPrimary(loc)}</div>
+        ${secondary}
+        <div style="display:flex; align-items:center; margin-bottom:4px; font-size:11px; color:#cbd5e1;">
+            ${indicatorHtml} <span style="margin-left:2px;">${lineNames} Line${loc.lines.length > 1 ? 's' : ''}</span>
+        </div>
+        <div class="tooltip-hint">Click station for details</div>
+    `;
+}
+
+// Rebuild tooltips and the open popup title when the language toggles
+function refreshStationLanguage() {
+    locations.forEach(function (loc) {
+        if (loc.marker) loc.marker.setTooltipContent(buildTooltipContent(loc));
+    });
+    if (map && map._popup && map._popup.getElement) {
+        var el = map._popup.getElement();
+        var marker = map._popup._source;
+        var loc = marker && marker.stationLoc;
+        if (el && loc) {
+            var strong = el.querySelector('.station-popup strong');
+            if (strong) {
+                strong.textContent = displayPrimary(loc);
+                var secondary = el.querySelector('.popup-secondary');
+                if (myViewModelInstance.kannada() && loc.nameKn) {
+                    if (!secondary) {
+                        secondary = document.createElement('div');
+                        secondary.className = 'popup-secondary';
+                        strong.after(secondary);
+                    }
+                    secondary.textContent = loc.name;
+                } else if (secondary) {
+                    secondary.remove();
+                }
+            }
+        }
+    }
+}
+
 // Station popups: safe HTML building, validated Wikipedia content, retry on failure
 var wikiRequestToken = 0;
 
@@ -470,7 +509,10 @@ function popupHeaderHtml(loc) {
             escapeHtml(line) + '</span>';
     }).join('');
     var interchange = loc.lines.length > 1 ? '<span class="interchange-badge">Interchange</span>' : '';
-    return '<strong>' + escapeHtml(loc.name) + '</strong><div class="popup-chips">' + chips + interchange + '</div>' +
+    var secondary = myViewModelInstance && myViewModelInstance.kannada() && loc.nameKn ?
+        '<div class="popup-secondary">' + escapeHtml(loc.name) + '</div>' : '';
+    return '<strong>' + escapeHtml(displayPrimary(loc)) + '</strong>' + secondary +
+        '<div class="popup-chips">' + chips + interchange + '</div>' +
         '<button type="button" class="popup-copy">Copy link</button>';
 }
 
@@ -782,8 +824,15 @@ var myViewModel = function () {
 
     self.locations = ko.observableArray(locations);
     self.query = ko.observable('').extend({ rateLimit: { timeout: 200, method: 'notifyWhenChangesStop' } });
-    self.activeTab = ko.observable('explore'); // explore (all), purple, green, yellow
+    self.activeTab = ko.observable('explore'); // explore (all), purple, green, yellow, routing
     self.lineColors = lineColors;
+
+    // Kannada / English station names (persisted; search matches both scripts)
+    self.kannada = ko.observable(localStorage.getItem('nammaLang') === 'kn');
+    self.kannada.subscribe(function (on) {
+        localStorage.setItem('nammaLang', on ? 'kn' : 'en');
+        refreshStationLanguage();
+    });
 
     self.hoverStation = function (place) {
         // Clear any pending mouseout timeout (debounce)

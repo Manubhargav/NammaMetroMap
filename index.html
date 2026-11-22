@@ -28,13 +28,16 @@
 	<!-- Sidebar showing Heading, Filter box and List of items-->
 	<aside id="sidebar" inert aria-hidden="true">
 		<h1 class="heading">
-			Namma Metro Map
-            <button type="button" class="close-icon" onclick="closeview()" aria-label="Close station list">
-	            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<span>Namma Metro Map</span>
+			<span class="heading-actions">
+				<button type="button" class="lang-toggle" aria-label="Toggle Kannada station names" data-bind="click: function() { kannada(!kannada()); }, attr: { 'aria-pressed': kannada() ? 'true' : 'false' }, text: kannada() ? 'EN' : 'ಕನ್ನಡ'">ಕನ್ನಡ</button>
+				<button type="button" class="close-icon" onclick="closeview()" aria-label="Close station list">
+					<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
-			</button>
+				</button>
+			</span>
 		</h1>
 		<div class="tabs" role="tablist" aria-label="Metro lines">
             <button type="button" class="tab-btn" data-tab="explore" role="tab" data-bind="click: function() { activeTab('explore'); }, css: { active: activeTab() === 'explore' }, attr: { tabindex: activeTab() === 'explore' ? 0 : -1, 'aria-selected': activeTab() === 'explore' ? 'true' : 'false' }">All</button>
@@ -57,7 +60,10 @@
             </div>
             <div class="result-count" id="station-count" aria-live="polite" data-bind="visible: activeTab() !== 'routing', text: resultCountText"></div>
 		    <ul data-bind="foreach: filterResults">
-			    <li><button type="button" class="station-row" data-bind="text: name, click: $parent.displayInfo, event: { mouseover: $parent.hoverStation, mouseout: $parent.hoverStationOut }, style: { borderLeftColor: $parent.lineColors[lines[0]] || '#334155' }"></button></li>
+			    <li><button type="button" class="station-row" data-bind="click: $parent.displayInfo, event: { mouseover: $parent.hoverStation, mouseout: $parent.hoverStationOut }, style: { borderLeftColor: $parent.lineColors[lines[0]] || '#334155' }">
+					<span class="station-primary" data-bind="text: $parent.kannada() && nameKn ? nameKn : name, attr: { lang: $parent.kannada() && nameKn ? 'kn' : 'en' }"></span>
+					<span class="station-secondary" data-bind="visible: $parent.kannada() && nameKn, text: name"></span>
+				</button></li>
 		    </ul>
             <div class="empty-state" data-bind="visible: activeTab() !== 'routing' && filterResults().length === 0">
                 No stations match &ldquo;<span data-bind="text: query"></span>&rdquo;.
@@ -80,7 +86,7 @@
                     <input id="route-to" type="text" list="station-list" placeholder="Destination station" autocomplete="off" data-bind="textInput: routeTo">
                 </div>
                 <datalist id="station-list" data-bind="foreach: locations">
-                    <option data-bind="value: name"></option>
+                    <option data-bind="attr: { value: $parent.kannada() && nameKn ? nameKn : name }"></option>
                 </datalist>
                 <div class="route-actions">
                     <button type="button" class="route-find" data-bind="click: findRoute">Find route</button>
