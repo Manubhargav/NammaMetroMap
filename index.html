@@ -9,41 +9,46 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-	<!-- Whole page Google Map (with Locations of each item)-->
-	<div id="map"></div>
 	<!-- Hamburger menu that opens up the Sidebar-->
-	<svg class="menu-icon" onclick="openview()" style="cursor:pointer" viewBox="0 0 24 24" width="32" height="32" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+	<button type="button" class="menu-icon" onclick="openview()" aria-label="Open station list">
+		<svg viewBox="0 0 24 24" width="32" height="32" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <line x1="3" y1="12" x2="21" y2="12"></line>
       <line x1="3" y1="6" x2="21" y2="6"></line>
       <line x1="3" y1="18" x2="21" y2="18"></line>
     </svg>
+	</button>
 	<!-- Sidebar showing Heading, Filter box and List of items-->
-	<div id="sidebar">
-		<div class="heading">
+	<aside id="sidebar" inert aria-hidden="true">
+		<h1 class="heading">
 			Namma Metro Map
-            <svg class="close-icon" onclick="closeview()" style="cursor:pointer" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" class="close-icon" onclick="closeview()" aria-label="Close station list">
+	            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
-		</div>
-		<div class="tabs">
-            <button class="tab-btn" data-bind="click: function() { activeTab('explore'); }, css: { active: activeTab() === 'explore' }">All</button>
-            <button class="tab-btn" data-bind="click: function() { activeTab('purple'); }, css: { active: activeTab() === 'purple' }">Purple</button>
-            <button class="tab-btn" data-bind="click: function() { activeTab('green'); }, css: { active: activeTab() === 'green' }">Green</button>
-            <button class="tab-btn" data-bind="click: function() { activeTab('yellow'); }, css: { active: activeTab() === 'yellow' }">Yellow</button>
+			</button>
+		</h1>
+		<div class="tabs" role="tablist" aria-label="Metro lines">
+            <button type="button" class="tab-btn" data-tab="explore" role="tab" data-bind="click: function() { activeTab('explore'); }, css: { active: activeTab() === 'explore' }, attr: { tabindex: activeTab() === 'explore' ? 0 : -1, 'aria-selected': activeTab() === 'explore' ? 'true' : 'false' }">All</button>
+            <button type="button" class="tab-btn" data-tab="purple" role="tab" data-bind="click: function() { activeTab('purple'); }, css: { active: activeTab() === 'purple' }, attr: { tabindex: activeTab() === 'purple' ? 0 : -1, 'aria-selected': activeTab() === 'purple' ? 'true' : 'false' }">Purple</button>
+            <button type="button" class="tab-btn" data-tab="green" role="tab" data-bind="click: function() { activeTab('green'); }, css: { active: activeTab() === 'green' }, attr: { tabindex: activeTab() === 'green' ? 0 : -1, 'aria-selected': activeTab() === 'green' ? 'true' : 'false' }">Green</button>
+            <button type="button" class="tab-btn" data-tab="yellow" role="tab" data-bind="click: function() { activeTab('yellow'); }, css: { active: activeTab() === 'yellow' }, attr: { tabindex: activeTab() === 'yellow' ? 0 : -1, 'aria-selected': activeTab() === 'yellow' ? 'true' : 'false' }">Yellow</button>
         </div>
         
         <div class="tab-content">
             <div style="position: relative; margin: 10px 20px;">
-                <input type="text" class="filter" data-bind="textInput: query, event: { keydown: function(data, event) { if (event.key === 'Enter') { fitToResults(); } return true; } }" placeholder="Search stations" style="margin: 0; width: 100%; padding-right: 30px;">
-                <svg data-bind="visible: query().length > 0, click: function() { query(''); }" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b;" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <label for="station-search" class="sr-only">Search stations</label>
+                <input type="text" id="station-search" class="filter" aria-describedby="station-count" data-bind="textInput: query, event: { keydown: function(data, event) { if (event.key === 'Enter') { fitToResults(); } return true; } }" placeholder="Search stations" style="margin: 0; width: 100%; padding-right: 30px;">
+                <button type="button" class="clear-filter" aria-label="Clear search" data-bind="visible: query().length > 0, click: function() { query(''); }">
+	                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
+                </button>
             </div>
-            <div class="result-count" data-bind="visible: activeTab() !== 'routing', text: resultCountText"></div>
+            <div class="result-count" id="station-count" aria-live="polite" data-bind="visible: activeTab() !== 'routing', text: resultCountText"></div>
 		    <ul data-bind="foreach: filterResults">
-			    <li data-bind="text: name, click: $parent.displayInfo, event: { mouseover: $parent.hoverStation, mouseout: $parent.hoverStationOut }, style: { borderLeftColor: $parent.lineColors[lines[0]] || '#334155' }"></li>
+			    <li><button type="button" class="station-row" data-bind="text: name, click: $parent.displayInfo, event: { mouseover: $parent.hoverStation, mouseout: $parent.hoverStationOut }, style: { borderLeftColor: $parent.lineColors[lines[0]] || '#334155' }"></button></li>
 		    </ul>
             <div class="empty-state" data-bind="visible: activeTab() !== 'routing' && filterResults().length === 0">
                 No stations match &ldquo;<span data-bind="text: query"></span>&rdquo;.
@@ -54,9 +59,12 @@
         <div class="footer">
             Built by <a href="https://manubhargav.github.io" target="_blank" rel="noopener noreferrer">Manu Bhargav</a>
         </div>
-	</div>
+	</aside>
 	<!-- Tap-to-close dim layer behind the sidebar on phones/tablets -->
-	<div id="sidebar-backdrop" onclick="closeview()"></div>
+	<div id="sidebar-backdrop" aria-hidden="true" onclick="closeview()"></div>
+	<!-- Whole page Leaflet Map (with Locations of each item). Placed after the
+	     sidebar in DOM order so keyboard focus reaches sidebar controls first. -->
+	<main id="map"></main>
 	<!-- Hidden SVG for custom linear gradients (diagonal 2 to 8 o'clock split for interchange stations) -->
 	<svg style="width:0; height:0; position:absolute;" aria-hidden="true">
 		<defs>

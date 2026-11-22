@@ -145,6 +145,29 @@ $(document).ready(function () {
     // Open sidebar by default on larger screens; phones/tablets (<= 768px)
     // land on the map with the sidebar closed (responsive overlay + backdrop).
     if (window.innerWidth > 768) openview();
+
+    // Tab list keyboard navigation (Left/Right arrows, roving tabindex)
+    document.querySelector('.tabs').addEventListener('keydown', function (event) {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        event.preventDefault();
+        var tabs = Array.prototype.map.call(document.querySelectorAll('.tab-btn'), function (b) { return b.dataset.tab; });
+        var current = tabs.indexOf(myViewModelInstance.activeTab());
+        var delta = event.key === 'ArrowRight' ? 1 : -1;
+        var next = (current + delta + tabs.length) % tabs.length;
+        myViewModelInstance.activeTab(tabs[next]);
+        document.querySelectorAll('.tab-btn')[next].focus();
+    });
+
+    // Escape: close the open popup first, then the sidebar (not while typing)
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+        if (map && map._popup && map._popup.isOpen && map._popup.isOpen()) {
+            map.closePopup();
+            return;
+        }
+        var fromInput = /^(INPUT|TEXTAREA)$/.test(event.target.tagName);
+        if (!fromInput && document.body.classList.contains('sidebar-open')) closeview();
+    });
 });
 
 function initMapFeatures() {
@@ -251,6 +274,9 @@ function initMapFeatures() {
         loc.marker = marker;
         markers.push(marker);
         marker.addTo(markersGroup);
+        // Markers stay pointer-only: the station list is the keyboard path
+        var pathEl = marker.getElement();
+        if (pathEl) pathEl.setAttribute('tabindex', '-1');
     });
 
     drawPolylines();
@@ -370,11 +396,18 @@ function populateInfoWindow(marker, loc) {
 
 function openview() {
     document.body.classList.add('sidebar-open');
+    var sidebar = document.getElementById('sidebar');
+    sidebar.removeAttribute('inert');
+    sidebar.setAttribute('aria-hidden', 'false');
     if (map) setTimeout(function () { map.invalidateSize(); }, 400);
 }
 
 function closeview() {
     document.body.classList.remove('sidebar-open');
+    var sidebar = document.getElementById('sidebar');
+    // Keep hidden sidebar controls out of the tab order and accessibility tree
+    sidebar.setAttribute('inert', '');
+    sidebar.setAttribute('aria-hidden', 'true');
     if (map) setTimeout(function () { map.invalidateSize(); }, 400);
 }
 
@@ -488,7 +521,11 @@ var myViewModel = function () {
         locations.forEach(function (loc) {
             if (!loc.marker) return;
             var shouldShow = !!visible[loc.name];
-            if (shouldShow && !markersGroup.hasLayer(loc.marker)) markersGroup.addLayer(loc.marker);
+            if (shouldShow && !markersGroup.hasLayer(loc.marker)) {
+                markersGroup.addLayer(loc.marker);
+                var pathEl = loc.marker.getElement();
+                if (pathEl) pathEl.setAttribute('tabindex', '-1');
+            }
             if (!shouldShow && markersGroup.hasLayer(loc.marker)) markersGroup.removeLayer(loc.marker);
         });
         return list.length;
