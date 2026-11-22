@@ -152,14 +152,19 @@ $(document).ready(function () {
     myViewModelInstance.activeTab.subscribe(function () {
         updatePolylineVisibility();
         fitToResults();
-        // Slight delay to allow map zoom & layer updates to settle
-        setTimeout(startOnboardingTour, 400);
     });
 
-    // Initial map framing + onboarding tour on page load
+    // Initial map framing on page load
     updatePolylineVisibility();
     fitToResults();
-    setTimeout(startOnboardingTour, 600);
+
+    // Auto tour only on the very first visit; replay anytime via the ? button.
+    if (!localStorage.getItem('nammaTourSeen')) {
+        setTimeout(function () {
+            localStorage.setItem('nammaTourSeen', '1');
+            startOnboardingTour();
+        }, 600);
+    }
 
     // Open sidebar by default on larger screens; phones/tablets (<= 768px)
     // land on the map with the sidebar closed (responsive overlay + backdrop).
@@ -248,9 +253,10 @@ function initMapFeatures() {
         `;
 
         marker.bindTooltip(tooltipContent, {
-            direction: 'top',
+            // 'auto' flips left/right so endpoint tooltips never clip at map edges
+            direction: 'auto',
             className: 'station-tooltip',
-            offset: [0, -8],
+            offset: [8, 0],
             opacity: 0.95,
             autoClose: false
         });
@@ -739,6 +745,21 @@ function startOnboardingTour() {
             }
         }
     });
+}
+
+// Replay button: restore the full line view (a filtered search would hide the
+// endpoints) and open the endpoint tooltips again.
+function replayTour() {
+    if (myViewModelInstance) {
+        myViewModelInstance.query('');
+        // Wait out the 200ms search debounce so endpoint markers are visible again
+        setTimeout(function () {
+            fitToResults();
+            startOnboardingTour();
+        }, 300);
+    } else {
+        startOnboardingTour();
+    }
 }
 
 function endOnboardingTour() {

@@ -73,6 +73,8 @@
 	<!-- Whole page Leaflet Map (with Locations of each item). Placed after the
 	     sidebar in DOM order so keyboard focus reaches sidebar controls first. -->
 	<main id="map"></main>
+	<!-- Replay the endpoint tour on demand -->
+	<button type="button" id="tour-replay" aria-label="Show line endpoints" title="Show line endpoints" onclick="replayTour()">?</button>
 	<!-- Basemap failure / offline notification -->
 	<div id="map-toast" role="status" style="display:none">
 		<span id="map-toast-text"></span>

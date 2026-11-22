@@ -317,6 +317,39 @@ li {
     font-family: 'Roboto', sans-serif !important;
     text-shadow: none !important;
     z-index: 1000 !important;
+    width: max-content;
+    max-width: 230px;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+/* Endpoint tour replay button */
+#tour-replay {
+    position: absolute;
+    left: 10px;
+    bottom: 25px;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    color: #1e293b;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    transition: left 0.35s ease-out;
+}
+
+@media (min-width: 769px) {
+    body.sidebar-open #tour-replay {
+        left: 410px;
+    }
+}
+
+#tour-replay:hover {
+    background: #f1f5f9;
 }
 
 /* Leaflet Popup smooth dimming transition when hovering other markers */
