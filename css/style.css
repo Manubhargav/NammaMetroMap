@@ -112,7 +112,8 @@ body.sidebar-open #sidebar {
 
 .filter {
     padding-left: 10px;
-    height: 30px;
+    height: 40px;
+    font-size: 16px;
     margin: 10px 20px;
     width: calc(100% - 40px);
     display: block;
@@ -120,6 +121,41 @@ body.sidebar-open #sidebar {
     border: none;
     border-radius: 4px;
     margin-bottom: 10px;
+}
+
+.result-count {
+    flex: none;
+    margin: 0 20px 8px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.empty-state {
+    flex: none;
+    margin: 12px 20px;
+    padding: 16px;
+    border: 1px dashed #475569;
+    border-radius: 8px;
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.empty-state button {
+    display: block;
+    margin-top: 10px;
+    background: #334155;
+    color: #f8fafc;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    min-height: 40px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.empty-state button:hover {
+    background: #475569;
 }
 
 .menu-icon {

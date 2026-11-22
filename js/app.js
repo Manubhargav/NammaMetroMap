@@ -23,6 +23,29 @@ var lineColors = {
     'Yellow': '#ffff00'
 };
 
+// Common/local names that should also find a station (all lowercase).
+var stationAliases = {
+    'Mahatma Gandhi Road': ['mg road', 'mg rd'],
+    'Krishnarajapura': ['kr puram', 'k r puram'],
+    'Krantivira Sangolli Rayanna Railway Station': ['city railway station', 'bangalore city', 'bengaluru city', 'ksr'],
+    'Nadaprabhu Kempegowda Station, Majestic': ['majestic', 'nadaprabhu', 'kempegowda'],
+    'Central Silk Board': ['silk board', 'silkboard'],
+    'Yeshwanthpur': ['yeshwantpur', 'yesvantpur'],
+    'Rashtreeya Vidyalaya Road': ['rv road', 'r v road', 'vidyalaya road'],
+    'Dr. B. R. Ambedkar Station, Vidhana Soudha': ['vidhana soudha', 'ambedkar'],
+    'Sir M. Visvesvaraya Stn., Central College': ['central college', 'visvesvaraya'],
+    'Sri Balagangadharanatha Swamiji Station, Hosahalli': ['hosahalli'],
+    'Mantri Square Sampige Road': ['sampige road', 'mantri square'],
+    'Mahakavi Kuvempu Road': ['kuvempu road'],
+    'Nallurahalli': ['nallurhalli'],
+    'Pantharapalya - Nayandahalli': ['nayandahalli'],
+    'Infosys Foundation Konappana Agrahara': ['infosys', 'konappana agrahara'],
+    'Delta Electronics Bommasandra': ['bommasandra', 'delta electronics'],
+    'Rajarajeshwari Nagar': ['rr nagar'],
+    'Vijayanagar': ['vijayanagara'],
+    'Jnanabharathi': ['jnanabharati']
+};
+
 var polylinesGroup = L.layerGroup();
 var markersGroup = L.layerGroup();
 
@@ -106,13 +129,17 @@ $(document).ready(function () {
     myViewModelInstance = new myViewModel();
     ko.applyBindings(myViewModelInstance);
 
-    // Subscribe to tab changes to automatically launch passive tour for the selected line
-    myViewModelInstance.activeTab.subscribe(function (newTab) {
+    // Tab changes: update polyline emphasis and reframe once (not per keystroke)
+    myViewModelInstance.activeTab.subscribe(function () {
+        updatePolylineVisibility();
+        fitToResults();
         // Slight delay to allow map zoom & layer updates to settle
         setTimeout(startOnboardingTour, 400);
     });
 
-    // Start onboarding tour on initial page load
+    // Initial map framing + onboarding tour on page load
+    updatePolylineVisibility();
+    fitToResults();
     setTimeout(startOnboardingTour, 600);
 
     // Open sidebar by default on larger screens; phones/tablets (<= 768px)
@@ -261,6 +288,48 @@ function drawPolylines() {
     }
 }
 
+// Polyline emphasis per active tab (routing handled by the journey planner)
+function updatePolylineVisibility() {
+    var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
+    if (activeLine === 'routing') {
+        if (map.hasLayer(polylinesGroup)) map.removeLayer(polylinesGroup);
+        return;
+    }
+    if (!map.hasLayer(polylinesGroup)) map.addLayer(polylinesGroup);
+    polylinesGroup.eachLayer(function (layer) {
+        if (activeLine === 'explore') {
+            layer.setStyle({ opacity: 0.7 });
+            return;
+        }
+        var lineName = activeLine.charAt(0).toUpperCase() + activeLine.slice(1);
+        layer.setStyle({ opacity: layer.options.color === lineColors[lineName] ? 1 : 0 });
+    });
+}
+
+// Reframe the map on the current results. Called on tab change, Enter in search,
+// and initial load; deliberately NOT while the user is typing.
+function fitToResults() {
+    if (!map || !myViewModelInstance) return;
+    if (myViewModelInstance.activeTab() === 'routing') return;
+    var bounds = myViewModelInstance.filterResults().map(function (loc) {
+        return [loc.location.lat, loc.location.lng];
+    });
+    if (!bounds.length) return;
+    var latLngBounds = L.latLngBounds(bounds);
+    var center = latLngBounds.getCenter();
+    var targetZoom = map.getBoundsZoom(latLngBounds, false, [80, 80]);
+
+    // Subtract 1 zoom level for long-spanning lines to avoid cropping terminals
+    if (myViewModelInstance.activeTab() === 'purple') {
+        targetZoom = targetZoom - 1;
+    }
+
+    // Cap zoom to prevent over-zooming on search filters
+    targetZoom = Math.min(targetZoom, 14);
+
+    map.setView(center, targetZoom);
+}
+
 // Function to Create the Infowindows that contain additional information
 function populateInfoWindow(marker, loc) {
     if (marker.isPopupOpen()) return;
@@ -314,7 +383,7 @@ var myViewModel = function () {
     var self = this;
 
     self.locations = ko.observableArray(locations);
-    self.query = ko.observable('');
+    self.query = ko.observable('').extend({ rateLimit: { timeout: 200, method: 'notifyWhenChangesStop' } });
     self.activeTab = ko.observable('explore'); // explore (all), purple, green, yellow
     self.lineColors = lineColors;
 
@@ -374,91 +443,66 @@ var myViewModel = function () {
         if (window.innerWidth <= 768) closeview(); // auto close sidebar on phones/tablets
     };
 
-    self.filterResults = ko.computed(function () {
+    // Pure list filter: no map side effects (map updates live in separate reactions).
+    self.filterResults = ko.pureComputed(function () {
         var activeLine = self.activeTab();
-        var q = self.query().toLowerCase();
+        var q = self.query().trim().toLowerCase();
 
-        var bounds = [];
         var filteredList = ko.utils.arrayFilter(self.locations(), function (loc) {
-            // Check text query
-            var textMatch = loc.name.toLowerCase().indexOf(q) > -1;
-
             // Check line tab
-            var tabMatch = true;
-            if (activeLine === 'purple') tabMatch = loc.lines.includes("Purple");
-            else if (activeLine === 'green') tabMatch = loc.lines.includes("Green");
-            else if (activeLine === 'yellow') tabMatch = loc.lines.includes("Yellow");
-            else if (activeLine === 'routing') tabMatch = false; // Hide from list in routing view
+            if (activeLine === 'routing') return false; // Hidden in routing view
+            if (activeLine === 'purple' && !loc.lines.includes("Purple")) return false;
+            if (activeLine === 'green' && !loc.lines.includes("Green")) return false;
+            if (activeLine === 'yellow' && !loc.lines.includes("Yellow")) return false;
 
-            var isVisible = textMatch && tabMatch;
-
-            if (loc.marker) {
-                if (isVisible) {
-                    if (!markersGroup.hasLayer(loc.marker)) markersGroup.addLayer(loc.marker);
-                    bounds.push([loc.location.lat, loc.location.lng]);
-                } else {
-                    if (markersGroup.hasLayer(loc.marker)) markersGroup.removeLayer(loc.marker);
-                }
+            if (!q) return true;
+            if (loc.name.toLowerCase().indexOf(q) > -1) return true;
+            if (loc.nameKn && loc.nameKn.indexOf(q) > -1) return true;
+            var aliases = stationAliases[loc.name] || [];
+            for (var i = 0; i < aliases.length; i++) {
+                if (aliases[i].indexOf(q) > -1) return true;
             }
-
-            return isVisible;
+            return false;
         });
 
         // Group & Sort logically based on exact route sequence
-        if (activeLine === 'explore') {
-            filteredList.sort(function (a, b) {
-                return orderedNames.indexOf(a.name) - orderedNames.indexOf(b.name);
-            });
-        } else if (activeLine === 'purple' && typeof metroRoutes !== 'undefined' && metroRoutes.Purple) {
-            filteredList.sort(function (a, b) {
-                return metroRoutes.Purple.indexOf(a.name) - metroRoutes.Purple.indexOf(b.name);
-            });
-        } else if (activeLine === 'green' && typeof metroRoutes !== 'undefined' && metroRoutes.Green) {
-            filteredList.sort(function (a, b) {
-                return metroRoutes.Green.indexOf(a.name) - metroRoutes.Green.indexOf(b.name);
-            });
-        } else if (activeLine === 'yellow' && typeof metroRoutes !== 'undefined' && metroRoutes.Yellow) {
-            filteredList.sort(function (a, b) {
-                return metroRoutes.Yellow.indexOf(a.name) - metroRoutes.Yellow.indexOf(b.name);
-            });
+        var orderList = orderedNames;
+        if (typeof metroRoutes !== 'undefined') {
+            if (activeLine === 'purple' && metroRoutes.Purple) orderList = metroRoutes.Purple;
+            else if (activeLine === 'green' && metroRoutes.Green) orderList = metroRoutes.Green;
+            else if (activeLine === 'yellow' && metroRoutes.Yellow) orderList = metroRoutes.Yellow;
         }
-
-        // Hide/Show Polylines based on active tab
-        if (activeLine === 'routing') {
-            if (map.hasLayer(polylinesGroup)) map.removeLayer(polylinesGroup);
-        } else if (activeLine === 'explore') {
-            if (!map.hasLayer(polylinesGroup)) map.addLayer(polylinesGroup);
-            polylinesGroup.eachLayer(function (layer) { layer.setStyle({ opacity: 0.7 }); });
-        } else {
-            if (!map.hasLayer(polylinesGroup)) map.addLayer(polylinesGroup);
-            polylinesGroup.eachLayer(function (layer) {
-                // Determine if this polyline matches the active tab's color
-                if (layer.options.color === lineColors[activeLine.charAt(0).toUpperCase() + activeLine.slice(1)]) {
-                    layer.setStyle({ opacity: 1 });
-                } else {
-                    layer.setStyle({ opacity: 0 });
-                }
-            });
-        }
-
-        // Fit map bounds with smart zoom calibration
-        if (bounds.length > 0 && map && activeLine !== 'routing') {
-            var latLngBounds = L.latLngBounds(bounds);
-            var center = latLngBounds.getCenter();
-            var targetZoom = map.getBoundsZoom(latLngBounds, false, [80, 80]);
-
-            // Subtract 1 zoom level for long-spanning lines to avoid cropping terminals
-            if (activeLine === 'purple') {
-                targetZoom = targetZoom - 1;
-            }
-
-            // Cap zoom to prevent over-zooming on search filters
-            targetZoom = Math.min(targetZoom, 14);
-
-            map.setView(center, targetZoom);
-        }
+        filteredList.sort(function (a, b) {
+            return orderList.indexOf(a.name) - orderList.indexOf(b.name);
+        });
 
         return filteredList;
+    });
+
+    // Marker visibility follows the filtered list (debounced via query), but the
+    // map camera never moves here: reframing happens on tab change / Enter / click.
+    self.visibleMarkers = ko.computed(function () {
+        var list = self.filterResults();
+        var visible = {};
+        list.forEach(function (loc) { visible[loc.name] = true; });
+        locations.forEach(function (loc) {
+            if (!loc.marker) return;
+            var shouldShow = !!visible[loc.name];
+            if (shouldShow && !markersGroup.hasLayer(loc.marker)) markersGroup.addLayer(loc.marker);
+            if (!shouldShow && markersGroup.hasLayer(loc.marker)) markersGroup.removeLayer(loc.marker);
+        });
+        return list.length;
+    });
+
+    self.resultCountText = ko.pureComputed(function () {
+        var n = self.filterResults().length;
+        var line = self.activeTab();
+        var text = n + (n === 1 ? ' station' : ' stations');
+        if (line !== 'explore' && line !== 'routing') {
+            text += ' on ' + line.charAt(0).toUpperCase() + line.slice(1);
+        }
+        if (self.query()) text += ' matching \u201c' + self.query() + '\u201d';
+        return text;
     });
 };
 
