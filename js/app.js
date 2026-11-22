@@ -163,6 +163,14 @@ $(document).ready(function () {
             if (tab === 'explore') params.delete('line');
             else params.set('line', tab);
         });
+
+        var tab = myViewModelInstance.activeTab();
+        if (tab === 'routing' && myViewModelInstance.routeResult()) {
+            drawRouteHighlight(myViewModelInstance.routeResult().path);
+        } else {
+            routeHighlight.clearLayers();
+            if (map.hasLayer(routeHighlight)) map.removeLayer(routeHighlight);
+        }
     });
 
     // Initial map framing on page load
@@ -195,6 +203,23 @@ $(document).ready(function () {
     map.on('popupclose', function () {
         replaceUrlParams(function (params) { params.delete('station'); });
     });
+
+    // ?from=&to= deep link: run the journey planner on load
+    var fromParam = urlParams.get('from');
+    var toParam = urlParams.get('to');
+    if (fromParam && toParam) {
+        var fromLoc = null, toLoc = null;
+        locations.forEach(function (loc) {
+            if (stationSlug(loc.name) === fromParam) fromLoc = loc;
+            if (stationSlug(loc.name) === toParam) toLoc = loc;
+        });
+        if (fromLoc && toLoc) {
+            myViewModelInstance.activeTab('routing');
+            myViewModelInstance.routeFrom(fromLoc.name);
+            myViewModelInstance.routeTo(toLoc.name);
+            myViewModelInstance.findRoute();
+        }
+    }
 
     // Open sidebar by default on larger screens; phones/tablets (<= 768px)
     // land on the map with the sidebar closed (responsive overlay + backdrop).
@@ -380,7 +405,9 @@ function drawPolylines() {
 function updatePolylineVisibility() {
     var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
     if (activeLine === 'routing') {
-        if (map.hasLayer(polylinesGroup)) map.removeLayer(polylinesGroup);
+        // Journey planner: keep a dimmed network behind the route highlight
+        if (!map.hasLayer(polylinesGroup)) map.addLayer(polylinesGroup);
+        polylinesGroup.eachLayer(function (layer) { layer.setStyle({ opacity: 0.25 }); });
         return;
     }
     if (!map.hasLayer(polylinesGroup)) map.addLayer(polylinesGroup);
@@ -629,6 +656,126 @@ function closeview() {
     if (map) setTimeout(function () { map.invalidateSize(); }, 400);
 }
 
+// Journey planner: station graph + Dijkstra over (station, line) states.
+// Cost = hops, with a transfer penalty so fewest transfers wins ties.
+var routeGraph = null;
+var routeHighlight = L.layerGroup();
+
+function buildRouteGraph() {
+    if (routeGraph) return routeGraph;
+    var adj = {};
+    Object.keys(metroRoutes).forEach(function (line) {
+        var stops = metroRoutes[line];
+        for (var i = 0; i < stops.length - 1; i++) {
+            var a = stops[i], b = stops[i + 1];
+            (adj[a] = adj[a] || []).push({ to: b, line: line });
+            (adj[b] = adj[b] || []).push({ to: a, line: line });
+        }
+    });
+    routeGraph = adj;
+    return adj;
+}
+
+function resolveStationName(input) {
+    var q = (input || '').trim().toLowerCase();
+    if (!q) return null;
+    for (var i = 0; i < locations.length; i++) {
+        var loc = locations[i];
+        if (loc.name.toLowerCase() === q) return loc.name;
+        if (loc.nameKn && loc.nameKn === input.trim()) return loc.name;
+        var aliases = stationAliases[loc.name] || [];
+        if (aliases.indexOf(q) > -1) return loc.name;
+    }
+    return null;
+}
+
+function computeJourney(fromName, toName) {
+    var adj = buildRouteGraph();
+    var locByName = {};
+    locations.forEach(function (loc) { locByName[loc.name] = loc; });
+    var dist = {};
+    var prev = {};
+    var queue = [];
+
+    function key(station, line) { return station + '|' + line; }
+
+    (locByName[fromName].lines || []).forEach(function (line) {
+        dist[key(fromName, line)] = 0;
+        queue.push({ station: fromName, line: line, cost: 0 });
+    });
+
+    var bestKey = null;
+    while (queue.length) {
+        queue.sort(function (a, b) { return a.cost - b.cost; });
+        var cur = queue.shift();
+        var curKey = key(cur.station, cur.line);
+        if (cur.cost > (dist[curKey] === undefined ? Infinity : dist[curKey])) continue;
+        if (cur.station === toName) { bestKey = curKey; break; }
+
+        (adj[cur.station] || []).forEach(function (edge) {
+            if (edge.line !== cur.line) return;
+            var nk = key(edge.to, cur.line);
+            var nc = cur.cost + 1;
+            if (dist[nk] === undefined || nc < dist[nk]) {
+                dist[nk] = nc;
+                prev[nk] = { fromKey: curKey, via: 'ride' };
+                queue.push({ station: edge.to, line: cur.line, cost: nc });
+            }
+        });
+
+        (locByName[cur.station].lines || []).forEach(function (other) {
+            if (other === cur.line) return;
+            var nk = key(cur.station, other);
+            var nc = cur.cost + 2;
+            if (dist[nk] === undefined || nc < dist[nk]) {
+                dist[nk] = nc;
+                prev[nk] = { fromKey: curKey, via: 'transfer' };
+                queue.push({ station: cur.station, line: other, cost: nc });
+            }
+        });
+    }
+
+    if (!bestKey) return null;
+
+    var path = [];
+    var k = bestKey;
+    while (k) {
+        var sep = k.lastIndexOf('|');
+        var p = prev[k];
+        path.unshift({ station: k.slice(0, sep), line: k.slice(sep + 1), via: p ? p.via : 'start' });
+        k = p ? p.fromKey : null;
+    }
+    return path;
+}
+
+function drawRouteHighlight(path) {
+    routeHighlight.clearLayers();
+    polylinesGroup.eachLayer(function (layer) { layer.setStyle({ opacity: 0.08 }); });
+    var locByName = {};
+    locations.forEach(function (loc) { locByName[loc.name] = loc; });
+    var latlngs = [];
+    for (var i = 0; i < path.length - 1; i++) {
+        var a = path[i], b = path[i + 1];
+        var la = locByName[a.station].location;
+        latlngs.push([la.lat, la.lng]);
+        if (a.station === b.station) continue; // transfer, no movement
+        var lb = locByName[b.station].location;
+        L.polyline([[la.lat, la.lng], [lb.lat, lb.lng]], {
+            color: lineColors[a.line], weight: 6, opacity: 1
+        }).addTo(routeHighlight);
+    }
+    var last = locByName[path[path.length - 1].station].location;
+    latlngs.push([last.lat, last.lng]);
+    routeHighlight.addTo(map);
+    map.fitBounds(L.latLngBounds(latlngs), { padding: [60, 60] });
+}
+
+function clearRouteHighlight() {
+    routeHighlight.clearLayers();
+    if (map.hasLayer(routeHighlight)) map.removeLayer(routeHighlight);
+    updatePolylineVisibility();
+}
+
 // --> ViewModel
 var myViewModel = function () {
     var self = this;
@@ -756,9 +903,73 @@ var myViewModel = function () {
         if (line !== 'explore' && line !== 'routing') {
             text += ' on ' + line.charAt(0).toUpperCase() + line.slice(1);
         }
-        if (self.query()) text += ' matching \u201c' + self.query() + '\u201d';
+        if (self.query()) text += ' matching “' + self.query() + '”';
         return text;
     });
+
+    // Journey planner state
+    self.routeFrom = ko.observable('');
+    self.routeTo = ko.observable('');
+    self.routeError = ko.observable('');
+    self.routeResult = ko.observable(null);
+    self.routeSteps = ko.observableArray([]);
+    self.routeSummary = ko.observable('');
+
+    self.swapRoute = function () {
+        var from = self.routeFrom();
+        self.routeFrom(self.routeTo());
+        self.routeTo(from);
+    };
+
+    self.findRoute = function () {
+        self.routeError('');
+        var from = resolveStationName(self.routeFrom());
+        var to = resolveStationName(self.routeTo());
+        if (!from || !to) {
+            self.routeError('Pick a start and destination station from the list.');
+            return;
+        }
+        if (from === to) {
+            self.routeError('Start and destination are the same station.');
+            return;
+        }
+        var path = computeJourney(from, to);
+        if (!path) {
+            self.routeError('No route found between these stations.');
+            return;
+        }
+        var rides = path.filter(function (s) { return s.via === 'ride'; }).length;
+        var transfers = path.filter(function (s) { return s.via === 'transfer'; }).length;
+        var minutes = rides * 2 + transfers * 3;
+        self.routeResult({ path: path });
+        self.routeSummary(rides + (rides === 1 ? ' stop' : ' stops') + ' · ' + transfers + (transfers === 1 ? ' transfer' : ' transfers') + ' · ~' + minutes + ' min (estimate)');
+        self.routeSteps(path.map(function (s) {
+            return {
+                name: s.station,
+                isTransfer: s.via === 'transfer',
+                transferText: s.via === 'transfer' ? 'Change to ' + s.line + ' Line' : '',
+                lineBadge: s.line,
+                lineColor: lineColors[s.line],
+                lineTextColor: s.line === 'Yellow' ? '#333' : '#fff'
+            };
+        }));
+        drawRouteHighlight(path);
+        replaceUrlParams(function (params) {
+            params.set('from', stationSlug(from));
+            params.set('to', stationSlug(to));
+        });
+    };
+
+    self.clearRoute = function () {
+        self.routeFrom('');
+        self.routeTo('');
+        self.routeError('');
+        self.routeResult(null);
+        self.routeSteps([]);
+        self.routeSummary('');
+        clearRouteHighlight();
+        replaceUrlParams(function (params) { params.delete('from'); params.delete('to'); });
+    };
 };
 
 // Passive Onboarding Tour Helpers & Management

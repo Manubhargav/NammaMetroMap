@@ -41,10 +41,11 @@
             <button type="button" class="tab-btn" data-tab="purple" role="tab" data-bind="click: function() { activeTab('purple'); }, css: { active: activeTab() === 'purple' }, attr: { tabindex: activeTab() === 'purple' ? 0 : -1, 'aria-selected': activeTab() === 'purple' ? 'true' : 'false' }">Purple</button>
             <button type="button" class="tab-btn" data-tab="green" role="tab" data-bind="click: function() { activeTab('green'); }, css: { active: activeTab() === 'green' }, attr: { tabindex: activeTab() === 'green' ? 0 : -1, 'aria-selected': activeTab() === 'green' ? 'true' : 'false' }">Green</button>
             <button type="button" class="tab-btn" data-tab="yellow" role="tab" data-bind="click: function() { activeTab('yellow'); }, css: { active: activeTab() === 'yellow' }, attr: { tabindex: activeTab() === 'yellow' ? 0 : -1, 'aria-selected': activeTab() === 'yellow' ? 'true' : 'false' }">Yellow</button>
+            <button type="button" class="tab-btn" data-tab="routing" role="tab" data-bind="click: function() { activeTab('routing'); }, css: { active: activeTab() === 'routing' }, attr: { tabindex: activeTab() === 'routing' ? 0 : -1, 'aria-selected': activeTab() === 'routing' ? 'true' : 'false' }">Route</button>
         </div>
         
         <div class="tab-content">
-            <div style="position: relative; margin: 10px 20px;">
+            <div style="position: relative; margin: 10px 20px;" data-bind="visible: activeTab() !== 'routing'">
                 <label for="station-search" class="sr-only">Search stations</label>
                 <input type="text" id="station-search" class="filter" aria-describedby="station-count" data-bind="textInput: query, event: { keydown: function(data, event) { if (event.key === 'Enter') { fitToResults(); } return true; } }" placeholder="Search stations" style="margin: 0; width: 100%; padding-right: 30px;">
                 <button type="button" class="clear-filter" aria-label="Clear search" data-bind="visible: query().length > 0, click: function() { query(''); }">
@@ -61,6 +62,44 @@
             <div class="empty-state" data-bind="visible: activeTab() !== 'routing' && filterResults().length === 0">
                 No stations match &ldquo;<span data-bind="text: query"></span>&rdquo;.
                 <button type="button" data-bind="click: function() { query(''); }">Clear search</button>
+            </div>
+
+            <!-- Journey planner -->
+            <div class="route-panel" data-bind="visible: activeTab() === 'routing'">
+                <div class="route-field">
+                    <label for="route-from">From</label>
+                    <input id="route-from" type="text" list="station-list" placeholder="Start station" autocomplete="off" data-bind="textInput: routeFrom">
+                </div>
+                <button type="button" class="route-swap" aria-label="Swap start and destination" title="Swap stations" data-bind="click: swapRoute">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"></path>
+                    </svg>
+                </button>
+                <div class="route-field">
+                    <label for="route-to">To</label>
+                    <input id="route-to" type="text" list="station-list" placeholder="Destination station" autocomplete="off" data-bind="textInput: routeTo">
+                </div>
+                <datalist id="station-list" data-bind="foreach: locations">
+                    <option data-bind="value: name"></option>
+                </datalist>
+                <div class="route-actions">
+                    <button type="button" class="route-find" data-bind="click: findRoute">Find route</button>
+                    <button type="button" class="route-clear" data-bind="click: clearRoute">Clear</button>
+                </div>
+                <div class="route-error" role="alert" data-bind="visible: routeError, text: routeError"></div>
+                <div class="route-result" data-bind="visible: routeResult">
+                    <div class="route-summary" data-bind="text: routeSummary"></div>
+                    <ol class="route-steps" data-bind="foreach: routeSteps">
+                        <li data-bind="css: { interchange: isTransfer }">
+                            <span class="step-name" data-bind="text: name"></span>
+                            <span class="step-meta">
+                                <span class="step-line" data-bind="text: lineBadge, style: { background: lineColor, color: lineTextColor }"></span>
+                                <span class="step-transfer" data-bind="visible: isTransfer, text: transferText"></span>
+                            </span>
+                        </li>
+                    </ol>
+                    <div class="route-estimate-note">Stops and time are estimates, not a timetable.</div>
+                </div>
             </div>
         </div>
         
