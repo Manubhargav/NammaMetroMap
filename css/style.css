@@ -480,6 +480,22 @@ li {
     background: #334155;
 }
 
+.popup-copy {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    border-radius: 6px;
+    padding: 3px 10px;
+    min-height: 30px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.popup-copy:hover {
+    background: #f1f5f9;
+}
+
 /* Subtle physical double-bounce animation for SVG station markers */
 @keyframes marker-bounce {
     0% {

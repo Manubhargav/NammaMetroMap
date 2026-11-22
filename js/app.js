@@ -148,23 +148,53 @@ $(document).ready(function () {
     myViewModelInstance = new myViewModel();
     ko.applyBindings(myViewModelInstance);
 
-    // Tab changes: update polyline emphasis and reframe once (not per keystroke)
+    // Deep links: ?line= restores the tab, ?station= opens a station popup
+    var urlParams = new URLSearchParams(location.search);
+    var lineToTab = { purple: 'purple', green: 'green', yellow: 'yellow', all: 'explore', explore: 'explore', route: 'routing', routing: 'routing' };
+    var requestedLine = (urlParams.get('line') || '').toLowerCase();
+    if (lineToTab[requestedLine]) myViewModelInstance.activeTab(lineToTab[requestedLine]);
+
+    // Tab changes: update polyline emphasis, reframe once, sync ?line=
     myViewModelInstance.activeTab.subscribe(function () {
         updatePolylineVisibility();
         fitToResults();
+        replaceUrlParams(function (params) {
+            var tab = myViewModelInstance.activeTab();
+            if (tab === 'explore') params.delete('line');
+            else params.set('line', tab);
+        });
     });
 
     // Initial map framing on page load
     updatePolylineVisibility();
     fitToResults();
 
+    var requestedStation = urlParams.get('station');
+
     // Auto tour only on the very first visit; replay anytime via the ? button.
-    if (!localStorage.getItem('nammaTourSeen')) {
+    if (!requestedStation && !localStorage.getItem('nammaTourSeen')) {
         setTimeout(function () {
             localStorage.setItem('nammaTourSeen', '1');
             startOnboardingTour();
         }, 600);
     }
+
+    // ?station= deep link: center and open the station popup on load
+    if (requestedStation) {
+        var target = null;
+        for (var i = 0; i < locations.length; i++) {
+            if (stationSlug(locations[i].name) === requestedStation) { target = locations[i]; break; }
+        }
+        if (target) {
+            map.setView([target.location.lat, target.location.lng], 14);
+            populateInfoWindow(target.marker, target);
+        }
+    }
+
+    // Closing the popup clears the station from the URL
+    map.on('popupclose', function () {
+        replaceUrlParams(function (params) { params.delete('station'); });
+    });
 
     // Open sidebar by default on larger screens; phones/tablets (<= 768px)
     // land on the map with the sidebar closed (responsive overlay + backdrop).
@@ -413,27 +443,59 @@ function popupHeaderHtml(loc) {
             escapeHtml(line) + '</span>';
     }).join('');
     var interchange = loc.lines.length > 1 ? '<span class="interchange-badge">Interchange</span>' : '';
-    return '<strong>' + escapeHtml(loc.name) + '</strong><div class="popup-chips">' + chips + interchange + '</div>';
+    return '<strong>' + escapeHtml(loc.name) + '</strong><div class="popup-chips">' + chips + interchange + '</div>' +
+        '<button type="button" class="popup-copy">Copy link</button>';
 }
 
 function setPopupBody(marker, loc, bodyHtml) {
     marker.setPopupContent('<div class="station-popup">' + popupHeaderHtml(loc) +
         '<div class="popup-body">' + bodyHtml + '</div></div>');
     if (marker.isPopupOpen() && marker.getPopup()) marker.getPopup().update();
+    wirePopupActions(marker, loc);
 }
 
-function bindPopupRetry(marker, loc) {
+// Wire popup buttons after each content replacement (Leaflet rebuilds the DOM).
+function wirePopupActions(marker, loc) {
     setTimeout(function () {
         var popup = marker.getPopup();
         var el = popup && popup.getElement();
-        var btn = el && el.querySelector('.popup-retry');
-        if (btn) {
-            btn.addEventListener('click', function () {
+        if (!el) return;
+        var retry = el.querySelector('.popup-retry');
+        if (retry) {
+            retry.addEventListener('click', function () {
                 setPopupBody(marker, loc, 'Loading info…');
                 loadWikiIntoPopup(marker, loc);
             });
         }
+        var copy = el.querySelector('.popup-copy');
+        if (copy) {
+            copy.addEventListener('click', function () { copyStationLink(loc, copy); });
+        }
     }, 0);
+}
+
+function copyStationLink(loc, btn) {
+    var params = new URLSearchParams(location.search);
+    params.set('station', stationSlug(loc.name));
+    var url = location.origin + location.pathname + '?' + params.toString();
+    function done() {
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = 'Copy link'; }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url, done); });
+    } else {
+        fallbackCopy(url, done);
+    }
+}
+
+function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { /* clipboard unavailable: leave label */ }
+    ta.remove();
 }
 
 // Accept only articles that are plausibly about THIS station in Bengaluru:
@@ -505,7 +567,6 @@ function loadWikiIntoPopup(marker, loc) {
             setPopupBody(marker, loc,
                 '<p class="popup-error">Wikipedia information could not be loaded. Check your connection and try again.</p>' +
                 '<button type="button" class="popup-retry">Retry</button>');
-            bindPopupRetry(marker, loc);
         }
     });
 }
@@ -519,7 +580,25 @@ function populateInfoWindow(marker, loc) {
             // dismiss the popup mid-request. Close via the X, Esc, or another station.
             closeOnClick: false
         }).openPopup();
+    wirePopupActions(marker, loc);
+    updateStationUrl(loc);
     loadWikiIntoPopup(marker, loc);
+}
+
+// Shareable station links: slug + URL helpers (history.replaceState, no scroll jump)
+function stationSlug(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function replaceUrlParams(mutator) {
+    var params = new URLSearchParams(location.search);
+    mutator(params);
+    var qs = params.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+}
+
+function updateStationUrl(loc) {
+    replaceUrlParams(function (params) { params.set('station', stationSlug(loc.name)); });
 }
 
 // Basemap toast notification
