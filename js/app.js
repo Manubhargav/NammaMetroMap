@@ -15,6 +15,8 @@ var myViewModelInstance; // Global reference for tour trigger
 
 // Assign locations from external file or default to empty
 var locations = typeof metroStations !== 'undefined' ? metroStations : [];
+var locationsByName = {};
+locations.forEach(function (loc) { locationsByName[loc.name] = loc; });
 
 // Polyline colors
 var lineColors = {
@@ -174,6 +176,8 @@ $(document).ready(function () {
             if (map.hasLayer(routeHighlight)) map.removeLayer(routeHighlight);
         }
         refreshStationLabels();
+        updateRouteEndpointLabels();
+        updateMarkerSizes();
         // Reveal the map after choosing a view on phones/tablets
         if (window.innerWidth <= 768) closeview();
     });
@@ -211,7 +215,11 @@ $(document).ready(function () {
 
     // Zoomed-in views label every visible station; zoomed-out views keep the
     // endpoint + interchange baseline labels
-    map.on('zoomend', refreshStationLabels);
+    map.on('zoomend', function () {
+        refreshStationLabels();
+        updateMarkerSizes();
+    });
+    map.on('moveend', clampAllOpenTooltips);
 
     // ?from=&to= deep link: run the journey planner on load
     var fromParam = urlParams.get('from');
@@ -475,6 +483,7 @@ function refreshStationLanguage() {
     locations.forEach(function (loc) {
         if (loc.marker) loc.marker.setTooltipContent(buildTooltipContent(loc));
     });
+    updateRouteEndpointLabels();
     if (map && map._popup && map._popup.getElement) {
         var el = map._popup.getElement();
         var marker = map._popup._source;
@@ -824,7 +833,8 @@ function drawRouteHighlight(path) {
     var last = locByName[path[path.length - 1].station].location;
     latlngs.push([last.lat, last.lng]);
     routeHighlight.addTo(map);
-    map.fitBounds(L.latLngBounds(latlngs), { padding: [60, 60] });
+    // Cap zoom so short routes don't trigger the crowded all-labels view
+    map.fitBounds(L.latLngBounds(latlngs), { padding: [60, 60], maxZoom: 13 });
 }
 
 function clearRouteHighlight() {
@@ -949,7 +959,12 @@ var myViewModel = function () {
     self.visibleMarkers = ko.computed(function () {
         var list = self.filterResults();
         var visible = {};
-        list.forEach(function (loc) { visible[loc.name] = true; });
+        if (self.activeTab() === 'routing') {
+            // Planner view keeps every station marker: endpoints need labels
+            locations.forEach(function (loc) { visible[loc.name] = true; });
+        } else {
+            list.forEach(function (loc) { visible[loc.name] = true; });
+        }
         locations.forEach(function (loc) {
             if (!loc.marker) return;
             var shouldShow = !!visible[loc.name];
@@ -987,6 +1002,8 @@ var myViewModel = function () {
         var from = self.routeFrom();
         self.routeFrom(self.routeTo());
         self.routeTo(from);
+        // Recompute immediately when a route is already displayed
+        if (self.routeResult()) self.findRoute();
     };
 
     self.findRoute = function () {
@@ -1022,6 +1039,8 @@ var myViewModel = function () {
             };
         }));
         drawRouteHighlight(path);
+        updateRouteEndpointLabels();
+        refreshStationLabels();
         if (window.innerWidth <= 768) closeview(); // reveal the highlighted route on mobile
         replaceUrlParams(function (params) {
             params.set('from', stationSlug(from));
@@ -1037,6 +1056,8 @@ var myViewModel = function () {
         self.routeSteps([]);
         self.routeSummary('');
         clearRouteHighlight();
+        updateRouteEndpointLabels();
+        refreshStationLabels();
         replaceUrlParams(function (params) { params.delete('from'); params.delete('to'); });
     };
 };
@@ -1050,6 +1071,13 @@ var hoveredStation = null;
 // search labels all matching stations.
 function getBaselineLabelStations() {
     var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
+    var interchanges = locations.filter(function (loc) { return loc.lines.length > 1; })
+        .map(function (loc) { return loc.name; });
+    // Small screens at city zoom: interchanges only, so the map stays readable
+    if (window.innerWidth <= 768 && map && map.getZoom() < 13 &&
+        (activeLine === 'explore' || activeLine === 'routing')) {
+        return interchanges;
+    }
     var endpoints = [];
     if (activeLine === 'explore' || activeLine === 'routing') {
         endpoints = endpoints.concat(getLineEndpoints('Purple'), getLineEndpoints('Green'), getLineEndpoints('Yellow'));
@@ -1057,23 +1085,65 @@ function getBaselineLabelStations() {
         var lineName = activeLine.charAt(0).toUpperCase() + activeLine.slice(1);
         endpoints = getLineEndpoints(lineName);
     }
-    var interchanges = locations.filter(function (loc) { return loc.lines.length > 1; })
-        .map(function (loc) { return loc.name; });
     return endpoints.concat(interchanges).filter(function (name, idx, arr) { return arr.indexOf(name) === idx; });
 }
 
-// Clamp a tooltip into the map's horizontal bounds with a transform. Direction
-// flips alone cannot help when a wide tooltip fits on neither side of a marker.
+// Marker dots shrink at low zoom so dense city views stay readable
+function updateMarkerSizes() {
+    if (!map) return;
+    var radius = map.getZoom() < 12 ? 5 : 8;
+    locations.forEach(function (loc) {
+        if (!loc.marker) return;
+        var isEndpoint = currentRouteEndpoints.indexOf(loc.name) > -1;
+        loc.marker.setStyle({ radius: isEndpoint ? radius + 3 : radius, weight: isEndpoint ? 4 : 3 });
+    });
+}
+
+// Origin/destination labels and emphasis for the active route
+var currentRouteEndpoints = [];
+
+function routeEndpointTooltipContent(loc, label) {
+    return '<div class="tooltip-title">' + label + ': ' + displayPrimary(loc) + '</div>' +
+        '<div class="tooltip-sub">' + loc.lines.join(', ') + ' Line' + (loc.lines.length > 1 ? 's' : '') + '</div>';
+}
+
+function updateRouteEndpointLabels() {
+    var next = [];
+    var result = myViewModelInstance && myViewModelInstance.routeResult();
+    if (myViewModelInstance && myViewModelInstance.activeTab() === 'routing' && result) {
+        next = [result.path[0].station, result.path[result.path.length - 1].station];
+    }
+    currentRouteEndpoints.forEach(function (name) {
+        if (next.indexOf(name) > -1) return;
+        var loc = locationsByName[name];
+        if (loc && loc.marker) loc.marker.setTooltipContent(buildTooltipContent(loc));
+    });
+    currentRouteEndpoints = next;
+    next.forEach(function (name, idx) {
+        var loc = locationsByName[name];
+        if (loc && loc.marker) {
+            loc.marker.setTooltipContent(routeEndpointTooltipContent(loc, idx === 0 ? 'From' : 'To'));
+            loc.marker.openTooltip();
+        }
+    });
+    updateMarkerSizes();
+}
+
+// Clamp a tooltip into the map's horizontal bounds with a margin offset.
+// Leaflet positions tooltips via transform, so we must never reset transform;
+// margin-left is independent and keeps the station position intact.
 function clampTooltipIntoView(tooltip) {
     var el = tooltip.getElement();
     if (!el || !el.isConnected) return;
-    el.style.transform = ''; // measure the unclamped position first
+    // Measure with inline margin 0: Leaflet's direction classes carry their own
+    // margin, and clearing to '' would measure a different base than we apply to.
+    el.style.marginLeft = '0px';
     var mapRect = map.getContainer().getBoundingClientRect();
     var rect = el.getBoundingClientRect();
     var delta = 0;
     if (rect.right > mapRect.right - 4) delta = mapRect.right - 4 - rect.right;
     else if (rect.left < mapRect.left + 4) delta = mapRect.left + 4 - rect.left;
-    el.style.transform = delta ? 'translateX(' + Math.round(delta) + 'px)' : '';
+    if (delta) el.style.marginLeft = Math.round(delta) + 'px';
 }
 
 function refreshStationLabels() {
@@ -1084,7 +1154,8 @@ function refreshStationLabels() {
     locations.forEach(function (loc) {
         if (!loc.marker) return;
         var visible = markersGroup.hasLayer(loc.marker);
-        var want = visible && (showAll || hasQuery || baseline.indexOf(loc.name) > -1);
+        var want = visible && (showAll || hasQuery || baseline.indexOf(loc.name) > -1 ||
+            currentRouteEndpoints.indexOf(loc.name) > -1);
         if (want) {
             if (!loc.marker.isTooltipOpen()) loc.marker.openTooltip();
         } else if (loc.marker.isTooltipOpen() && loc !== hoveredStation) {
@@ -1092,6 +1163,10 @@ function refreshStationLabels() {
         }
     });
     // Clamp any open tooltip that still overflows the map (narrow viewports)
+    clampAllOpenTooltips();
+}
+
+function clampAllOpenTooltips() {
     requestAnimationFrame(function () {
         locations.forEach(function (loc) {
             if (loc.marker && loc.marker.isTooltipOpen()) clampTooltipIntoView(loc.marker.getTooltip());
@@ -1159,6 +1234,7 @@ function startOnboardingTour() {
             }
         }
     });
+    clampAllOpenTooltips();
 }
 
 // Replay button: restore the full line view (a filtered search would hide the
