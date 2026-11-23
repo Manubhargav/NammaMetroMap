@@ -59,7 +59,7 @@
                 </button>
             </div>
             <div class="result-count" id="station-count" aria-live="polite" data-bind="visible: activeTab() !== 'routing', text: resultCountText"></div>
-		    <ul data-bind="foreach: filterResults">
+		    <ul data-bind="visible: activeTab() !== 'routing', foreach: filterResults">
 			    <li><button type="button" class="station-row" data-bind="click: $parent.displayInfo, event: { mouseover: $parent.hoverStation, mouseout: $parent.hoverStationOut }, style: { borderLeftColor: $parent.lineColors[lines[0]] || '#334155' }">
 					<span class="station-primary" data-bind="text: $parent.kannada() && nameKn ? nameKn : name, attr: { lang: $parent.kannada() && nameKn ? 'kn' : 'en' }"></span>
 					<span class="station-secondary" data-bind="visible: $parent.kannada() && nameKn, text: name"></span>

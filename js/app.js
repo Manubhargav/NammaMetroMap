@@ -162,6 +162,8 @@ $(document).ready(function () {
             var tab = myViewModelInstance.activeTab();
             if (tab === 'explore') params.delete('line');
             else params.set('line', tab);
+            // Leaving the planner clears its deep-link params
+            if (tab !== 'routing') { params.delete('from'); params.delete('to'); }
         });
 
         var tab = myViewModelInstance.activeTab();
@@ -171,6 +173,9 @@ $(document).ready(function () {
             routeHighlight.clearLayers();
             if (map.hasLayer(routeHighlight)) map.removeLayer(routeHighlight);
         }
+        refreshStationLabels();
+        // Reveal the map after choosing a view on phones/tablets
+        if (window.innerWidth <= 768) closeview();
     });
 
     // Initial map framing on page load
@@ -204,6 +209,10 @@ $(document).ready(function () {
         replaceUrlParams(function (params) { params.delete('station'); });
     });
 
+    // Zoomed-in views label every visible station; zoomed-out views keep the
+    // endpoint + interchange baseline labels
+    map.on('zoomend', refreshStationLabels);
+
     // ?from=&to= deep link: run the journey planner on load
     var fromParam = urlParams.get('from');
     var toParam = urlParams.get('to');
@@ -230,6 +239,12 @@ $(document).ready(function () {
     map.on('popupopen', function (e) {
         var el = e.popup.getElement();
         if (el) L.DomEvent.disableClickPropagation(el);
+    });
+
+    // Safety net for tooltips that still overflow the map after Leaflet's
+    // automatic direction choice (mostly narrow phone viewports)
+    map.on('tooltipopen', function (e) {
+        requestAnimationFrame(function () { clampTooltipIntoView(e.tooltip); });
     });
 
     // Tab list keyboard navigation (Left/Right arrows, roving tabindex)
@@ -840,6 +855,7 @@ var myViewModel = function () {
             clearTimeout(place.hoverTimeout);
             place.hoverTimeout = null;
         }
+        hoveredStation = place;
 
         endOnboardingTour(); // Hovering ends the onboarding tour
 
@@ -865,6 +881,7 @@ var myViewModel = function () {
         // Debounce: delay cleanup by 250ms to prevent flicker
         place.hoverTimeout = setTimeout(function () {
             place.hoverTimeout = null;
+            hoveredStation = null;
             if (place.marker) {
                 place.marker.closeTooltip();
 
@@ -876,6 +893,7 @@ var myViewModel = function () {
                     element.classList.remove('bounce-animation');
                 }
             }
+            refreshStationLabels();
         }, 250);
     };
 
@@ -942,6 +960,7 @@ var myViewModel = function () {
             }
             if (!shouldShow && markersGroup.hasLayer(loc.marker)) markersGroup.removeLayer(loc.marker);
         });
+        refreshStationLabels();
         return list.length;
     });
 
@@ -1003,6 +1022,7 @@ var myViewModel = function () {
             };
         }));
         drawRouteHighlight(path);
+        if (window.innerWidth <= 768) closeview(); // reveal the highlighted route on mobile
         replaceUrlParams(function (params) {
             params.set('from', stationSlug(from));
             params.set('to', stationSlug(to));
@@ -1023,6 +1043,61 @@ var myViewModel = function () {
 
 // Passive Onboarding Tour Helpers & Management
 var tourActive = false;
+var hoveredStation = null;
+
+// Baseline station labels: line endpoints + interchanges stay labeled so the
+// map never looks bare. Zoom >= 15 labels every visible station; an active
+// search labels all matching stations.
+function getBaselineLabelStations() {
+    var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
+    var endpoints = [];
+    if (activeLine === 'explore' || activeLine === 'routing') {
+        endpoints = endpoints.concat(getLineEndpoints('Purple'), getLineEndpoints('Green'), getLineEndpoints('Yellow'));
+    } else {
+        var lineName = activeLine.charAt(0).toUpperCase() + activeLine.slice(1);
+        endpoints = getLineEndpoints(lineName);
+    }
+    var interchanges = locations.filter(function (loc) { return loc.lines.length > 1; })
+        .map(function (loc) { return loc.name; });
+    return endpoints.concat(interchanges).filter(function (name, idx, arr) { return arr.indexOf(name) === idx; });
+}
+
+// Clamp a tooltip into the map's horizontal bounds with a transform. Direction
+// flips alone cannot help when a wide tooltip fits on neither side of a marker.
+function clampTooltipIntoView(tooltip) {
+    var el = tooltip.getElement();
+    if (!el || !el.isConnected) return;
+    el.style.transform = ''; // measure the unclamped position first
+    var mapRect = map.getContainer().getBoundingClientRect();
+    var rect = el.getBoundingClientRect();
+    var delta = 0;
+    if (rect.right > mapRect.right - 4) delta = mapRect.right - 4 - rect.right;
+    else if (rect.left < mapRect.left + 4) delta = mapRect.left + 4 - rect.left;
+    el.style.transform = delta ? 'translateX(' + Math.round(delta) + 'px)' : '';
+}
+
+function refreshStationLabels() {
+    if (!map) return;
+    var showAll = map.getZoom() >= 15;
+    var hasQuery = myViewModelInstance && myViewModelInstance.query().trim().length > 0;
+    var baseline = getBaselineLabelStations();
+    locations.forEach(function (loc) {
+        if (!loc.marker) return;
+        var visible = markersGroup.hasLayer(loc.marker);
+        var want = visible && (showAll || hasQuery || baseline.indexOf(loc.name) > -1);
+        if (want) {
+            if (!loc.marker.isTooltipOpen()) loc.marker.openTooltip();
+        } else if (loc.marker.isTooltipOpen() && loc !== hoveredStation) {
+            loc.marker.closeTooltip();
+        }
+    });
+    // Clamp any open tooltip that still overflows the map (narrow viewports)
+    requestAnimationFrame(function () {
+        locations.forEach(function (loc) {
+            if (loc.marker && loc.marker.isTooltipOpen()) clampTooltipIntoView(loc.marker.getTooltip());
+        });
+    });
+}
 
 function getLineEndpoints(line) {
     if (typeof metroRoutes === 'undefined' || !metroRoutes[line]) return [];
@@ -1109,4 +1184,6 @@ function endOnboardingTour() {
             loc.marker.closeTooltip();
         }
     });
+    // The baseline labels stay on even after the tour ends
+    refreshStationLabels();
 }
