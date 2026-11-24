@@ -120,6 +120,10 @@
 	<main id="map"></main>
 	<!-- Replay the endpoint tour on demand -->
 	<button type="button" id="tour-replay" aria-label="Show line endpoints" title="Show line endpoints" onclick="replayTour()">?</button>
+	<!-- Compact line summary for small screens (replaces floating endpoint labels) -->
+	<div id="line-legend" role="note" aria-label="Line summary" style="display:none">
+		<div id="line-legend-content"></div>
+	</div>
 	<!-- Basemap failure / offline notification -->
 	<div id="map-toast" role="status" style="display:none">
 		<span id="map-toast-text"></span>

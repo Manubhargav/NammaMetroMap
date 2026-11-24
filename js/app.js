@@ -220,6 +220,10 @@ $(document).ready(function () {
         updateMarkerSizes();
     });
     map.on('moveend', clampAllOpenTooltips);
+    window.addEventListener('resize', function () {
+        refreshStationLabels();
+        updateMarkerSizes();
+    });
 
     // ?from=&to= deep link: run the journey planner on load
     var fromParam = urlParams.get('from');
@@ -1069,15 +1073,36 @@ var hoveredStation = null;
 // Baseline station labels: line endpoints + interchanges stay labeled so the
 // map never looks bare. Zoom >= 15 labels every visible station; an active
 // search labels all matching stations.
+// Small screens at city zoom: no floating labels at all (they overlap dense
+// markers). A compact line-summary card carries the same information instead.
+function isSmallScreenCityView() {
+    return window.innerWidth <= 768 && map && map.getZoom() < 13;
+}
+
+function updateLineLegend() {
+    var el = document.getElementById('line-legend');
+    if (!el) return;
+    var show = isSmallScreenCityView() && !(myViewModelInstance && myViewModelInstance.query().trim());
+    el.style.display = show ? 'block' : 'none';
+    if (!show) return;
+    var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
+    var lines = (activeLine === 'explore' || activeLine === 'routing') ? ['Purple', 'Green', 'Yellow'] :
+        [activeLine.charAt(0).toUpperCase() + activeLine.slice(1)];
+    document.getElementById('line-legend-content').innerHTML = lines.map(function (line) {
+        var ends = getLineEndpoints(line).map(function (name) {
+            var loc = locationsByName[name];
+            return loc ? displayPrimary(loc) : name;
+        });
+        return '<div class="legend-row"><span class="legend-dot" style="background:' + lineColors[line] + '"></span>' +
+            '<span class="legend-line">' + line + '</span> ' + ends.join(' ↔ ') + '</div>';
+    }).join('');
+}
+
 function getBaselineLabelStations() {
+    if (isSmallScreenCityView()) return [];
     var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
     var interchanges = locations.filter(function (loc) { return loc.lines.length > 1; })
         .map(function (loc) { return loc.name; });
-    // Small screens at city zoom: interchanges only, so the map stays readable
-    if (window.innerWidth <= 768 && map && map.getZoom() < 13 &&
-        (activeLine === 'explore' || activeLine === 'routing')) {
-        return interchanges;
-    }
     var endpoints = [];
     if (activeLine === 'explore' || activeLine === 'routing') {
         endpoints = endpoints.concat(getLineEndpoints('Purple'), getLineEndpoints('Green'), getLineEndpoints('Yellow'));
@@ -1164,6 +1189,7 @@ function refreshStationLabels() {
     });
     // Clamp any open tooltip that still overflows the map (narrow viewports)
     clampAllOpenTooltips();
+    updateLineLegend();
 }
 
 function clampAllOpenTooltips() {
@@ -1206,6 +1232,13 @@ function getLineEndpoints(line) {
 function startOnboardingTour() {
     // End any existing tour tooltips first
     endOnboardingTour();
+
+    // On small screens the legend card already covers the endpoints; floating
+    // tour tooltips would just crowd the map.
+    if (isSmallScreenCityView()) {
+        updateLineLegend();
+        return;
+    }
 
     var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
     var endpointsToShow = [];
