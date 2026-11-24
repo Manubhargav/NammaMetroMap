@@ -150,6 +150,10 @@ $(document).ready(function () {
     myViewModelInstance = new myViewModel();
     ko.applyBindings(myViewModelInstance);
 
+    // Station combo pickers: full list on focus even when filled, type to filter
+    createStationCombo(document.getElementById('route-from'), function (name) { myViewModelInstance.routeFrom(name); });
+    createStationCombo(document.getElementById('route-to'), function (name) { myViewModelInstance.routeTo(name); });
+
     // Deep links: ?line= restores the tab, ?station= opens a station popup
     var urlParams = new URLSearchParams(location.search);
     var lineToTab = { purple: 'purple', green: 'green', yellow: 'yellow', all: 'explore', explore: 'explore', route: 'routing', routing: 'routing' };
@@ -178,8 +182,12 @@ $(document).ready(function () {
         refreshStationLabels();
         updateRouteEndpointLabels();
         updateMarkerSizes();
-        // Reveal the map after choosing a view on phones/tablets
-        if (window.innerWidth <= 768) closeview();
+        // Reveal the map after choosing a view on phones/tablets. Route keeps
+        // the panel OPEN: its inputs are the point of that view.
+        if (window.innerWidth <= 768) {
+            if (tab === 'routing') openview();
+            else closeview();
+        }
     });
 
     // Initial map framing on page load
@@ -188,8 +196,9 @@ $(document).ready(function () {
 
     var requestedStation = urlParams.get('station');
 
-    // Auto tour only on the very first visit; replay anytime via the ? button.
-    if (!requestedStation && !localStorage.getItem('nammaTourSeen')) {
+    // Auto tour only on the very first visit on larger screens; small screens
+    // stay clean (the ? button toggles endpoint labels on demand there).
+    if (!requestedStation && !localStorage.getItem('nammaTourSeen') && !isSmallScreenCityView()) {
         setTimeout(function () {
             localStorage.setItem('nammaTourSeen', '1');
             startOnboardingTour();
@@ -847,6 +856,133 @@ function clearRouteHighlight() {
     updatePolylineVisibility();
 }
 
+// Station combo input: opens the full station list on focus (even when the
+// field already holds a value), filters while typing, keyboard navigation,
+// fixed-position dropdown that flips upward when space below is short.
+function createStationCombo(input, onSelect) {
+    var wrap = input.closest('.combo-wrap');
+    var listEl = wrap.querySelector('.combo-list');
+    var toggle = wrap.querySelector('.combo-toggle');
+    var activeIndex = -1;
+
+    function matches(loc, q) {
+        if (!q) return true;
+        if (loc.name.toLowerCase().indexOf(q) > -1) return true;
+        if (loc.nameKn && loc.nameKn.indexOf(q) > -1) return true;
+        var aliases = stationAliases[loc.name] || [];
+        for (var i = 0; i < aliases.length; i++) {
+            if (aliases[i].indexOf(q) > -1) return true;
+        }
+        return false;
+    }
+
+    function render(showAll) {
+        // Only one combo list open at a time (otherwise the other one covers
+        // the Find route button)
+        document.querySelectorAll('.combo-list').forEach(function (other) {
+            if (other !== listEl) other.hidden = true;
+        });
+        var q = showAll ? '' : input.value.trim().toLowerCase();
+        var items = locations.filter(function (loc) { return matches(loc, q); });
+        activeIndex = -1;
+        if (!items.length) {
+            listEl.innerHTML = '<div class="combo-empty">No stations match</div>';
+        } else {
+            listEl.innerHTML = items.map(function (loc, i) {
+                var secondary = myViewModelInstance.kannada() && loc.nameKn ? '<span class="combo-secondary">' + escapeHtml(loc.name) + '</span>' : '';
+                return '<div class="combo-option" role="option" data-index="' + i + '" data-name="' + escapeHtml(loc.name) + '">' +
+                    '<span>' + escapeHtml(displayPrimary(loc)) + '</span>' + secondary + '</div>';
+            }).join('');
+            if (showAll) {
+                var current = items.findIndex(function (loc) { return loc.name === input.value.trim(); });
+                if (current >= 0) {
+                    var opt = listEl.children[current];
+                    opt.classList.add('active');
+                    opt.scrollIntoView({ block: 'nearest' });
+                }
+            }
+        }
+        listEl.hidden = false;
+        position();
+    }
+
+    function position() {
+        var rect = input.getBoundingClientRect();
+        listEl.style.left = rect.left + 'px';
+        listEl.style.width = rect.width + 'px';
+        var spaceBelow = window.innerHeight - rect.bottom - 12;
+        if (spaceBelow < 180) {
+            listEl.style.maxHeight = Math.max(120, Math.min(240, rect.top - 12)) + 'px';
+            listEl.style.top = 'auto';
+            listEl.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+        } else {
+            listEl.style.maxHeight = Math.min(240, spaceBelow) + 'px';
+            listEl.style.top = (rect.bottom + 4) + 'px';
+            listEl.style.bottom = 'auto';
+        }
+    }
+
+    function close() {
+        listEl.hidden = true;
+        activeIndex = -1;
+    }
+
+    var justSelected = false;
+
+    function select(name) {
+        justSelected = true;
+        onSelect(name);
+        close();
+        input.focus();
+    }
+
+    function options() {
+        return Array.prototype.slice.call(listEl.querySelectorAll('.combo-option'));
+    }
+
+    input.addEventListener('focus', function () {
+        // After selecting an option the list stays closed until the user types
+        // or opens it again; focusing to continue must not reopen it.
+        if (justSelected) { justSelected = false; return; }
+        render(true);
+    });
+    input.addEventListener('input', function () { render(false); });
+    toggle.addEventListener('click', function (event) {
+        event.preventDefault();
+        if (listEl.hidden) render(true); else close();
+    });
+    input.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (listEl.hidden) { render(true); return; }
+            var opts = options();
+            if (!opts.length) return;
+            activeIndex = event.key === 'ArrowDown' ? Math.min(activeIndex + 1, opts.length - 1) : Math.max(activeIndex - 1, 0);
+            opts.forEach(function (o) { o.classList.remove('active'); });
+            opts[activeIndex].classList.add('active');
+            opts[activeIndex].scrollIntoView({ block: 'nearest' });
+        } else if (event.key === 'Enter') {
+            if (!listEl.hidden && activeIndex >= 0) {
+                event.preventDefault();
+                var opt = options()[activeIndex];
+                if (opt) select(opt.dataset.name);
+            }
+        } else if (event.key === 'Escape') {
+            close();
+        }
+    });
+    listEl.addEventListener('mousedown', function (event) {
+        var opt = event.target.closest('.combo-option');
+        if (opt) {
+            event.preventDefault();
+            select(opt.dataset.name);
+        }
+    });
+    document.addEventListener('click', function (event) {
+        if (!wrap.contains(event.target)) close();
+    });
+}
+
 // --> ViewModel
 var myViewModel = function () {
     var self = this;
@@ -1069,6 +1205,7 @@ var myViewModel = function () {
 // Passive Onboarding Tour Helpers & Management
 var tourActive = false;
 var hoveredStation = null;
+var mobileLabelsOverride = false;
 
 // Baseline station labels: line endpoints + interchanges stay labeled so the
 // map never looks bare. Zoom >= 15 labels every visible station; an active
@@ -1082,24 +1219,40 @@ function isSmallScreenCityView() {
 function updateLineLegend() {
     var el = document.getElementById('line-legend');
     if (!el) return;
-    var show = isSmallScreenCityView() && !(myViewModelInstance && myViewModelInstance.query().trim());
+    var show = isSmallScreenCityView() && !mobileLabelsOverride &&
+        !(myViewModelInstance && myViewModelInstance.query().trim());
     el.style.display = show ? 'block' : 'none';
     if (!show) return;
     var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
     var lines = (activeLine === 'explore' || activeLine === 'routing') ? ['Purple', 'Green', 'Yellow'] :
         [activeLine.charAt(0).toUpperCase() + activeLine.slice(1)];
     document.getElementById('line-legend-content').innerHTML = lines.map(function (line) {
-        var ends = getLineEndpoints(line).map(function (name) {
-            var loc = locationsByName[name];
-            return loc ? displayPrimary(loc) : name;
-        });
+        var ends = getLineEndpoints(line).map(shortStationName);
         return '<div class="legend-row"><span class="legend-dot" style="background:' + lineColors[line] + '"></span>' +
             '<span class="legend-line">' + line + '</span> ' + ends.join(' ↔ ') + '</div>';
     }).join('');
 }
 
+// Short forms used only in the compact legend (full names stay in tooltips)
+var shortStationNames = {
+    'Rashtreeya Vidyalaya Road': 'RV Road',
+    'Delta Electronics Bommasandra': 'Delta Electronics',
+    'Whitefield (Kadugodi)': 'Whitefield',
+    'Nadaprabhu Kempegowda Station, Majestic': 'Majestic',
+    'Sri Balagangadharanatha Swamiji Station, Hosahalli': 'Hosahalli',
+    'Dr. B. R. Ambedkar Station, Vidhana Soudha': 'Vidhana Soudha',
+    'Sir M. Visvesvaraya Stn., Central College': 'Central College',
+    'Krantivira Sangolli Rayanna Railway Station': 'City Railway Station',
+    'Infosys Foundation Konappana Agrahara': 'Konappana Agrahara'
+};
+
+function shortStationName(name) {
+    if (myViewModelInstance && myViewModelInstance.kannada()) return displayPrimary(locationsByName[name]);
+    return shortStationNames[name] || name;
+}
+
 function getBaselineLabelStations() {
-    if (isSmallScreenCityView()) return [];
+    if (isSmallScreenCityView() && !mobileLabelsOverride) return [];
     var activeLine = myViewModelInstance ? myViewModelInstance.activeTab() : 'explore';
     var interchanges = locations.filter(function (loc) { return loc.lines.length > 1; })
         .map(function (loc) { return loc.name; });
@@ -1233,10 +1386,12 @@ function startOnboardingTour() {
     // End any existing tour tooltips first
     endOnboardingTour();
 
-    // On small screens the legend card already covers the endpoints; floating
-    // tour tooltips would just crowd the map.
+    // On small screens the ? button toggles endpoint + interchange labels on
+    // demand (default stays the clean legend card).
     if (isSmallScreenCityView()) {
-        updateLineLegend();
+        mobileLabelsOverride = true;
+        refreshStationLabels();
+        tourActive = true;
         return;
     }
 
@@ -1273,6 +1428,12 @@ function startOnboardingTour() {
 // Replay button: restore the full line view (a filtered search would hide the
 // endpoints) and open the endpoint tooltips again.
 function replayTour() {
+    // Small screens: ? toggles between the legend card and endpoint labels
+    if (isSmallScreenCityView()) {
+        if (mobileLabelsOverride) endOnboardingTour();
+        else startOnboardingTour();
+        return;
+    }
     if (myViewModelInstance) {
         myViewModelInstance.query('');
         // Wait out the 200ms search debounce so endpoint markers are visible again
@@ -1288,6 +1449,7 @@ function replayTour() {
 function endOnboardingTour() {
     if (!tourActive) return;
     tourActive = false;
+    mobileLabelsOverride = false;
     locations.forEach(function (loc) {
         if (loc.marker) {
             loc.marker.closeTooltip();

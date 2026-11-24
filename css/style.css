@@ -211,6 +211,69 @@ body.sidebar-open #sidebar {
     margin-top: 2px;
 }
 
+/* Station combo inputs */
+.combo-wrap {
+    position: relative;
+}
+
+.combo-wrap input {
+    padding-right: 30px;
+}
+
+.combo-toggle {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.combo-list {
+    position: fixed;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 3000;
+}
+
+.combo-option {
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #1e293b;
+    cursor: pointer;
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.combo-option:hover,
+.combo-option.active {
+    background: #e2e8f0;
+}
+
+.combo-secondary {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.combo-empty {
+    padding: 12px;
+    font-size: 13px;
+    color: #64748b;
+}
+
 /* Journey planner */
 .route-panel {
     flex: 1;
@@ -726,7 +789,7 @@ li {
     top: 15px;
     right: 10px;
     z-index: 1000;
-    background: rgba(15, 23, 42, 0.92);
+    background: #1e293b;
     color: #f8fafc;
     border-radius: 8px;
     padding: 8px 12px;
@@ -740,7 +803,9 @@ li {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: wrap;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .legend-dot {

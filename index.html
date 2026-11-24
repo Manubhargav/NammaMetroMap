@@ -74,7 +74,13 @@
             <div class="route-panel" data-bind="visible: activeTab() === 'routing'">
                 <div class="route-field">
                     <label for="route-from">From</label>
-                    <input id="route-from" type="text" list="station-list" placeholder="Start station" autocomplete="off" data-bind="textInput: routeFrom">
+                    <div class="combo-wrap">
+                        <input id="route-from" type="text" placeholder="Start station" autocomplete="off" data-bind="textInput: routeFrom">
+                        <button type="button" class="combo-toggle" aria-label="Show all stations" tabindex="-1">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+                        </button>
+                        <div class="combo-list" role="listbox" hidden></div>
+                    </div>
                 </div>
                 <button type="button" class="route-swap" aria-label="Swap start and destination" title="Swap stations" data-bind="click: swapRoute">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -83,11 +89,14 @@
                 </button>
                 <div class="route-field">
                     <label for="route-to">To</label>
-                    <input id="route-to" type="text" list="station-list" placeholder="Destination station" autocomplete="off" data-bind="textInput: routeTo">
+                    <div class="combo-wrap">
+                        <input id="route-to" type="text" placeholder="Destination station" autocomplete="off" data-bind="textInput: routeTo">
+                        <button type="button" class="combo-toggle" aria-label="Show all stations" tabindex="-1">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+                        </button>
+                        <div class="combo-list" role="listbox" hidden></div>
+                    </div>
                 </div>
-                <datalist id="station-list" data-bind="foreach: locations">
-                    <option data-bind="attr: { value: $parent.kannada() && nameKn ? nameKn : name }"></option>
-                </datalist>
                 <div class="route-actions">
                     <button type="button" class="route-find" data-bind="click: findRoute">Find route</button>
                     <button type="button" class="route-clear" data-bind="click: clearRoute">Clear</button>
