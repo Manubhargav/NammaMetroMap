@@ -927,25 +927,18 @@ function createStationCombo(input, onSelect) {
         activeIndex = -1;
     }
 
-    var justSelected = false;
-
     function select(name) {
-        justSelected = true;
         onSelect(name);
+        // Keep the list closed after selection. The input keeps its focus, so
+        // the next focus/click opens the full list again for changing the pick.
         close();
-        input.focus();
     }
 
     function options() {
         return Array.prototype.slice.call(listEl.querySelectorAll('.combo-option'));
     }
 
-    input.addEventListener('focus', function () {
-        // After selecting an option the list stays closed until the user types
-        // or opens it again; focusing to continue must not reopen it.
-        if (justSelected) { justSelected = false; return; }
-        render(true);
-    });
+    input.addEventListener('focus', function () { render(true); });
     input.addEventListener('input', function () { render(false); });
     toggle.addEventListener('click', function (event) {
         event.preventDefault();
